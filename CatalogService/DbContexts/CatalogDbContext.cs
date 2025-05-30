@@ -12,6 +12,7 @@ namespace CatalogService.DbContexts
 
         public DbSet<Service> Services { get; set; } = default!;
         public DbSet<Category> Categories { get; set; } = default!;
+        public DbSet<ServiceOption> ServiceOptions { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

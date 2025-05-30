@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CatalogService.Entities
 {
@@ -9,9 +10,13 @@ namespace CatalogService.Entities
         public string Name { get; set; }
         public string Description { get; set; }
         public string ImageUrl { get; set; }
-        public decimal Price { get; set; }
+        public string Unit { get; set; }
+        [Column(TypeName = "decimal(18, 2)")]
+        public decimal BasePrice { get; set; }
         public int Duration { get; set; }
         public int CategoryId { get; set; }
         public Category Category { get; set; }
+
+        public ICollection<ServiceOption> Options { get; set; }
     }
 }

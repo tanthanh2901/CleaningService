@@ -17,8 +17,6 @@ namespace OrderService.Services
         {
             var response = await client.GetAsync($"/api/services/{id}");
             return await response.ReadContentAs<Service>();
-        }
-
-      
+        }   
     }
 }

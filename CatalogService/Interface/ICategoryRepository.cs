@@ -7,8 +7,7 @@ namespace CatalogService.Interface
         Task<IEnumerable<Category>> GetAllCategories();
         Task<Category> GetCategoryById(int categoryId);
         Task<Category> AddCategory(Category category);
-        Task UpdateCategory(Category category);
-        Task DeleteCategory(int categoryId);
-
+        Task UpdateCategory(int categoryId, Category category);
+        Task DeleteCategory(Category category);
     }
 }

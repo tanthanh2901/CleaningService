@@ -8,7 +8,7 @@ namespace PaymentService.Profiles
     {
         public MappingProfile() 
         {
-            CreateMap<OrderCreatedEvent, OrderDto>().ReverseMap();
+            CreateMap<BookingCreatedEvent, BookingDto>().ReverseMap();
         }
     }
 }

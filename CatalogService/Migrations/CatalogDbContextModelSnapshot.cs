@@ -21,7 +21,7 @@ namespace CatalogService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("CatalogService.Models.Category", b =>
+            modelBuilder.Entity("CatalogService.Entities.Category", b =>
                 {
                     b.Property<int>("CategoryId")
                         .ValueGeneratedOnAdd()
@@ -38,13 +38,16 @@ namespace CatalogService.Migrations
                     b.ToTable("Categories");
                 });
 
-            modelBuilder.Entity("CatalogService.Models.Service", b =>
+            modelBuilder.Entity("CatalogService.Entities.Service", b =>
                 {
                     b.Property<int>("ServiceId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ServiceId"), 1L, 1);
+
+                    b.Property<decimal>("BasePrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
@@ -64,8 +67,9 @@ namespace CatalogService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ServiceId");
 
@@ -74,9 +78,42 @@ namespace CatalogService.Migrations
                     b.ToTable("Services");
                 });
 
-            modelBuilder.Entity("CatalogService.Models.Service", b =>
+            modelBuilder.Entity("CatalogService.Entities.ServiceOption", b =>
                 {
-                    b.HasOne("CatalogService.Models.Category", "Category")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DefaultValue")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionKey")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OptionLabel")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("ServiceOptions");
+                });
+
+            modelBuilder.Entity("CatalogService.Entities.Service", b =>
+                {
+                    b.HasOne("CatalogService.Entities.Category", "Category")
                         .WithMany("Services")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -85,9 +122,25 @@ namespace CatalogService.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("CatalogService.Models.Category", b =>
+            modelBuilder.Entity("CatalogService.Entities.ServiceOption", b =>
+                {
+                    b.HasOne("CatalogService.Entities.Service", "Service")
+                        .WithMany("Options")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("CatalogService.Entities.Category", b =>
                 {
                     b.Navigation("Services");
+                });
+
+            modelBuilder.Entity("CatalogService.Entities.Service", b =>
+                {
+                    b.Navigation("Options");
                 });
 #pragma warning restore 612, 618
         }

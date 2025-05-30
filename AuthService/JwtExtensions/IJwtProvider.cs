@@ -1,7 +1,11 @@
-﻿namespace AuthService.JwtExtensions
+﻿using AuthService.Dto;
+using Shared.Entities;
+
+namespace AuthService.JwtExtensions
 {
     public interface IJwtProvider
     {
-        string GenerateToken(int userId, string email);
+        Task<TokenDto> Generate(AppUser user);
+        Task<TokenDto> RefreshToken(TokenDto tokenDto);
     }
 }

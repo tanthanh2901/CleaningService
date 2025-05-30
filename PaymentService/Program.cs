@@ -30,7 +30,7 @@ builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 
-    busConfigurator.AddConsumer<OrderCreatedConsumer>();
+    busConfigurator.AddConsumer<BookingCreatedConsumer>();
 
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {

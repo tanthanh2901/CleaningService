@@ -9,10 +9,17 @@ namespace CatalogService.Profiles
         public MappingProfile() 
         {
             CreateMap<Service, ServiceDto>().ReverseMap();
-            CreateMap<Service, ServiceForUpdate>().ReverseMap();
+            CreateMap<Service, ServiceDtoForUpdate>().ReverseMap();
+            CreateMap<Service, ServiceDtoForCreate>().ReverseMap();
+
+            CreateMap<ServiceOption, ServiceOptionDto>().ReverseMap();
 
             CreateMap<Category, CategoryDto>().ReverseMap();
-            CreateMap<Category, CategoryForUpdate>().ReverseMap();
+            CreateMap<Category, CategoryForCreateAndUpdate>().ReverseMap();
+
+            CreateMap<PaginationDto<Service>, PaginationDto<ServiceDto>>().ReverseMap();
+            CreateMap<ICollection<ServiceOption>, List<ServiceOptionDto>>().ReverseMap();
+
 
 
         }

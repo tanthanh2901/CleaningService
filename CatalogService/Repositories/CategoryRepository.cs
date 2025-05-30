@@ -21,9 +21,8 @@ namespace CatalogService.Repositories
             return category;
         }
 
-        public async Task DeleteCategory(int categoryId)
+        public async Task DeleteCategory(Category category)
         {
-            var category = await this.GetCategoryById(categoryId);
             dbContext.Categories.Remove(category);
             await dbContext.SaveChangesAsync();
         }
@@ -35,20 +34,18 @@ namespace CatalogService.Repositories
 
         public async Task<Category> GetCategoryById(int categoryId)
         {
-            return await dbContext.Categories.Where(x => x.CategoryId == categoryId).FirstOrDefaultAsync();
+            return await dbContext.Categories.FirstOrDefaultAsync(x => x.CategoryId == categoryId);
         }
 
-        public async Task UpdateCategory(Category category)
+        public async Task UpdateCategory(int categoryId, Category category)
         {
-            try
-            {
-                dbContext.Entry(category).State = EntityState.Modified;
-                await dbContext.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                throw new InvalidOperationException("Concurrency issue occurred while updating", ex);
-            }
+            var existingCategory = await dbContext.Categories.FindAsync(categoryId);
+            if (existingCategory == null)
+                throw new ArgumentException("Category not found");
+
+            existingCategory.Name = category.Name;
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }

@@ -11,40 +11,50 @@ namespace CatalogService.Controllers
 
     public class CategoryController : ControllerBase
     {
-        private readonly ICategoryRepository categoryRepository;
-        private readonly IMapper mapper;
+        private readonly ICategoryService categoryService;
 
-        public CategoryController(ICategoryRepository categoryRepository)
+        public CategoryController(ICategoryService categoryService)
         {
-            this.categoryRepository = categoryRepository;
+            this.categoryService = categoryService;
         }
 
+        //[HttpGet]
+        //public async Task<ActionResult<IEnumerable<Category>>> Get()
+        //{
+        //    var result = await categoryRepository.GetAllCategories();
+        //    return Ok(result);
+        //}
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> Get()
+        public async Task<ActionResult<PaginationDto<Category>>> GetPaginatedCategories(
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
-            var result = await categoryRepository.GetAllCategories();
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 50) pageSize = 50; // Limit maximum page size
+
+            var result = await categoryService.GetPaginatedCategories(pageNumber, pageSize);
             return Ok(result);
         }
 
         [HttpGet("{categoryId}")]
-        public async Task<ActionResult<IEnumerable<Category>>> GetDetails(int categoryId)
+        public async Task<ActionResult<Category>> GetDetails(int categoryId)
         {
-            var result = await categoryRepository.GetCategoryById(categoryId);
+            var result = await categoryService.GetCategoryByIdAsync(categoryId);
             return Ok(result);
         }
 
         [HttpPut("{categoryId}")]
-        public async Task<ActionResult<int>> Update(int categoryId, CategoryForUpdate categoryForUpdate)
+        public async Task<ActionResult<int>> Update(int categoryId, CategoryForCreateAndUpdate categoryForUpdate)
         {
-            var categoryToUpdate = await categoryRepository.GetCategoryById(categoryId);
+            var categoryToUpdate = await categoryService.GetCategoryByIdAsync(categoryId);
             if (categoryToUpdate == null)
             {
                 return NotFound();
             }
 
-            mapper.Map(categoryForUpdate, categoryToUpdate, typeof(CategoryForUpdate), typeof(Category));
-
-            await categoryRepository.UpdateCategory(categoryToUpdate);
+            await categoryService.UpdateCategoryAsync(categoryId, categoryForUpdate);
 
             return Ok();
         }
@@ -52,23 +62,21 @@ namespace CatalogService.Controllers
         [HttpDelete("{categoryId}")]
         public async Task<ActionResult> Delete(int categoryId)
         {
-            var serviceToDelete = await categoryRepository.GetCategoryById(categoryId);
+            var serviceToDelete = await categoryService.GetCategoryByIdAsync(categoryId);
             if (serviceToDelete == null)
             {
                 return NotFound();
             }
 
-            await categoryRepository.DeleteCategory(categoryId);
+            await categoryService.DeleteCategoryAsync(categoryId);
 
             return NoContent();
         }
 
         [HttpPost]
-        public async Task<ActionResult<int>> Create(CategoryDto categoryDto)
+        public async Task<ActionResult<int>> Create(CategoryForCreateAndUpdate categoryDto)
         {
-            var category = mapper.Map<Category>(categoryDto);
-
-            await categoryRepository.AddCategory(category);
+            await categoryService.AddCategoryAsync(categoryDto);
 
             return Created();
         }

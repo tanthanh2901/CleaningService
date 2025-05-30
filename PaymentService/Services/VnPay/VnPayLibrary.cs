@@ -1,8 +1,10 @@
 ﻿using System.Globalization;
-using System.Net.Sockets;
 using System.Net;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using System.Web;
+
 
 namespace PaymentService.Services.VnPay
 {
@@ -38,7 +40,7 @@ namespace PaymentService.Services.VnPay
             return new PaymentVnPayResponseModel()
             {
                 Success = true,
-                PaymentMethod = "VnPay",
+                PaymentMethod = "vnpay",
                 OrderDescription = orderInfo,
                 OrderId = orderId.ToString(),
                 PaymentId = vnPayTranId.ToString(),
@@ -74,6 +76,7 @@ namespace PaymentService.Services.VnPay
 
             return "127.0.0.1";
         }
+
         public void AddRequestData(string key, string value)
         {
             if (!string.IsNullOrEmpty(value))

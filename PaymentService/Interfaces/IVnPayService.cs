@@ -5,7 +5,7 @@ namespace PaymentService.Interfaces
 {
     public interface IVnPayService
     {
-        string CreateVnPayPaymentUrl(OrderDto order, HttpContext context);
+        string CreateVnPayPaymentUrl(BookingDto order);
         PaymentVnPayResponseModel PaymentExecute(IQueryCollection collections);
     }
 }

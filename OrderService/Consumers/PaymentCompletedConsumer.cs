@@ -2,14 +2,15 @@
 using MessageBus.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 using OrderService.DbContexts;
+using OrderService.Enums;
 
 namespace OrderService.Consumers
 {
     public sealed class PaymentCompletedConsumer : IConsumer<PaymentCompletedEvent>
     {
-        private readonly OrderDbContext _context;
+        private readonly BookingDbContext _context;
 
-        public PaymentCompletedConsumer(OrderDbContext dbContext)
+        public PaymentCompletedConsumer(BookingDbContext dbContext)
         {
             this._context = dbContext;
         }
@@ -17,8 +18,8 @@ namespace OrderService.Consumers
         public async Task Consume(ConsumeContext<PaymentCompletedEvent> context)
         {
             var order = await _context
-                .Orders
-                .FirstOrDefaultAsync(order => order.OrderId == context.Message.OrderId);
+                .Bookings
+                .FirstOrDefaultAsync(order => order.BookingId == context.Message.BookingId);
 
             if (order is null)
             {
@@ -28,9 +29,9 @@ namespace OrderService.Consumers
             var paymentStatus = context.Message.IsSuccess;
 
             if (paymentStatus)
-                order.PaymentStatus = Entities.PaymentStatus.Paid;
+                order.PaymentStatus = PaymentStatus.Paid;
             else
-                order.PaymentStatus = Entities.PaymentStatus.Fail;
+                order.PaymentStatus = PaymentStatus.Fail;
 
             await _context.SaveChangesAsync();
         }
