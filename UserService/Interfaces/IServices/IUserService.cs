@@ -8,9 +8,11 @@ namespace UserService.Interfaces.IServices
     public interface IUserService
     { 
         Task<UserDto?> GetUserInfoAsync(int userId);
+        //Task<AppUser> GetFullUserInfoAsync(int userId);
         Task<bool> UpdateUserInfoAsync(int userId, UpdateUserInfoViewModel model);
         Task<bool> ChangePasswordAsync(int userId, ChangePasswordViewModel model);
-        
+        Task<string> UploadAvatarAsync(int userId, IFormFile avatar);
+
         //Task<AppUser> AdminGetUserInfo(int userId);
 
         Task<IdentityResult> CreateUserAsync(CreateUserRequest createUserRequest);

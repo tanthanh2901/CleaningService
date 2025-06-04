@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EventBus;
 using MassTransit;
+using MessageBus;
 using MessageBus.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 using PaymentService.DbContexts;
@@ -28,24 +29,42 @@ namespace PaymentService.Consumer
         public async Task Consume(ConsumeContext<BookingCreatedEvent> context)
         {
             var message = context.Message;
+            var cancellationToken = context.CancellationToken;
 
             if (await dbContext.Payments.AnyAsync(p => p.BookingId == message.BookingId))
                 return;
 
             var orderDto = mapper.Map<BookingDto>(message);
 
-            var payment = new Payment
+            using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+            try
             {
-                BookingId = orderDto.BookingId,
-                Amount = orderDto.TotalAmount,
-                CreatedAt = DateTime.UtcNow,
-                Status = "Pending",
-                PaymentMethod = orderDto.PaymentMethod
-            };
+                var payment = new Payment
+                {
+                    BookingId = orderDto.BookingId,
+                    Amount = orderDto.TotalAmount,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = "Pending",
+                    PaymentMethod = orderDto.PaymentMethod
+                };
 
-            dbContext.Payments.Add(payment);
-            await dbContext.SaveChangesAsync();
+                dbContext.Payments.Add(payment);
+                await dbContext.SaveChangesAsync(cancellationToken);
 
+                await ProcessPaymentMethod(orderDto, payment, cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken);
+            }
+            catch(Exception ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    throw;
+                }
+        }
+
+        private async Task ProcessPaymentMethod(BookingDto orderDto, Payment payment, CancellationToken cancellationToken)
+        {
             var paymentMethod = orderDto.PaymentMethod?.ToLower();
 
             switch (paymentMethod)
@@ -57,14 +76,26 @@ namespace PaymentService.Consumer
                         IsSuccess = true,
                         PaymentMethod = "cod",
                         Message = "Payment will be collected after service."
-                    });
+                    }, cancellationToken);
                     break;
 
                 case "vnpay":
-                    var vnpayUrl = vnPayService.CreateVnPayPaymentUrl(orderDto);
-                    payment.PaymentUrl = vnpayUrl;
-                    await dbContext.SaveChangesAsync();
-
+                    try
+                    {
+                        var vnpayUrl = vnPayService.CreateVnPayPaymentUrl(orderDto);
+                        payment.PaymentUrl = vnpayUrl;
+                        await dbContext.SaveChangesAsync(cancellationToken);
+                    }
+                    catch
+                    {
+                        await eventBus.PublishAsync(new PaymentCompletedEvent
+                        {
+                            BookingId = orderDto.BookingId,
+                            IsSuccess = false,
+                            PaymentMethod = "vnpay",
+                            Message = "Failed to initialize VNPay payment"
+                        }, cancellationToken);
+                    }
                     break;
 
                 default:
@@ -74,9 +105,10 @@ namespace PaymentService.Consumer
                         IsSuccess = false,
                         PaymentMethod = orderDto.PaymentMethod,
                         Message = $"Unknown payment method: {orderDto.PaymentMethod}"
-                    });
+                    }, cancellationToken);
                     break;
             }
+
         }
     }
 }

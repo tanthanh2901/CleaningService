@@ -74,6 +74,7 @@ builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.AddConsumer<UserBecameTaskerConsumer>();
     busConfigurator.AddConsumer<BookingCreatedConsumer>();
+    busConfigurator.AddConsumer<BookingStatusChangedConsumer>();
 
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 
@@ -84,6 +85,17 @@ builder.Services.AddMassTransit(busConfigurator =>
             h.Username(builder.Configuration["MessageBroker:Username"]);
             h.Password(builder.Configuration["MessageBroker:Password"]);
         });
+
+        configurator.ReceiveEndpoint("tasker-booking-created-queue", e =>
+        {
+            e.ConfigureConsumer<BookingCreatedConsumer>(context);
+        });
+        
+        configurator.ReceiveEndpoint("tasker-canceled-booking-queue", e =>
+        {
+            e.ConfigureConsumer<BookingStatusChangedConsumer>(context);
+        });
+
         configurator.ConfigureEndpoints(context);
     });
 });

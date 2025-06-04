@@ -77,6 +77,7 @@ builder.Services.AddScoped<IEventBus, MessageBus.EventBus>();
 builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.AddConsumer<PaymentCompletedConsumer>();
+    busConfigurator.AddConsumer<BookingStatusChangedConsumer>();
 
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 

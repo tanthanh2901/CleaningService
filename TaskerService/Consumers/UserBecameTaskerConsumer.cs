@@ -2,23 +2,18 @@
 using MessageBus.IntegrationEvents;
 using TaskerService.Entities;
 using TaskerService.Services;
-using Microsoft.EntityFrameworkCore;
-using TaskerService.DbContexts;
 
 namespace TaskerService.Consumers
 {
     public class UserBecameTaskerConsumer : IConsumer<TaskerCreatedEvent>
     {
-        private readonly TaskerDbContext _dbContext;
         private readonly ITaskerService _taskerService;
         private readonly ILogger<UserBecameTaskerConsumer> _logger;
 
         public UserBecameTaskerConsumer(
-            TaskerDbContext dbContext,
             ITaskerService taskerService,
             ILogger<UserBecameTaskerConsumer> logger)
         {
-            _dbContext = dbContext;
             _taskerService = taskerService;
             _logger = logger;
         }
@@ -30,8 +25,7 @@ namespace TaskerService.Consumers
             {
                 _logger.LogInformation("Processing UserBecameTaskerEvent for user {UserId}", message.UserId);
 
-                var existingTasker = await _dbContext.Taskers
-                    .FirstOrDefaultAsync(t => t.UserId == message.UserId);
+                var existingTasker = await _taskerService.GetTaskerByUserId(message.UserId);
 
                 if (existingTasker != null)
                 {

@@ -24,6 +24,8 @@ namespace OrderService.Entities
         public string ImageUrl { get; set; }
         public int TaskerId { get; set; }
         public DateTime ScheduleTime { get; set; }
+        public DateTime? CreateAt { get; set; }
+        public DateTime? UpdateAt { get; set; }
         public ICollection<BookingOption> Options { get; set; }
     }
 }

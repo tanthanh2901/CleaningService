@@ -6,6 +6,7 @@ namespace TaskerService.Entities
     public class Booking
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public int BookingId { get; set; }
         public int TaskerId { get; set; }
         public DateTime ScheduleTime { get; set; }
@@ -15,6 +16,7 @@ namespace TaskerService.Entities
         public decimal TotalAmount { get; set; }
         public string BookingStatus { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }
 
         public Tasker Tasker { get; set; }

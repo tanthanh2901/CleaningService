@@ -12,7 +12,7 @@ using TaskerService.DbContexts;
 namespace TaskerService.Migrations
 {
     [DbContext(typeof(TaskerDbContext))]
-    [Migration("20250529085752_InitMigration")]
+    [Migration("20250604103008_InitMigration")]
     partial class InitMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,10 +27,7 @@ namespace TaskerService.Migrations
             modelBuilder.Entity("TaskerService.Entities.Booking", b =>
                 {
                     b.Property<int>("BookingId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BookingId"), 1L, 1);
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -58,6 +55,9 @@ namespace TaskerService.Migrations
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("BookingId");
 

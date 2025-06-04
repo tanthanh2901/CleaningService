@@ -19,8 +19,12 @@ builder.Services.AddDbContext<CatalogDbContext>(options =>
        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
+
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+builder.Services.AddScoped<IServiceOptionRepository, ServiceOptionRepository>();
 
 var assembly = AppDomain.CurrentDomain.GetAssemblies();
 builder.Services.AddAutoMapper(assembly);

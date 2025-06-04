@@ -6,8 +6,8 @@
         public string Name { get; set; }
         public string ImageUrl { get; set; }
         public string? Description { get; set; }
+        public string? TaskDetails { get; set; }
         public decimal BasePrice { get; set; }
-        public string Unit { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
         public ICollection<ServiceOptionDto> Options { get; set; }

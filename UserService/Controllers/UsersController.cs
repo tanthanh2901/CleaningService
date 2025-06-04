@@ -10,6 +10,7 @@ using UserService.Services;
 
 namespace UserService.Controllers
 {
+    [Authorize]
     [Route("api/users")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -37,7 +38,6 @@ namespace UserService.Controllers
         }
 
         [HttpGet("me")]
-        [Authorize]
         public async Task<IActionResult> GetUserInfo()
         {
             var userId = await GetUserId();
@@ -67,11 +67,38 @@ namespace UserService.Controllers
             var users = await userService.GetAllUsersAsync();
             return Ok(users);
         }
+
+       
         [HttpPut("me")]
         public async Task<IActionResult> UpdateUserInfo(UpdateUserInfoViewModel model)
         {
             var userId = await GetUserId();
 
+            await userService.UpdateUserInfoAsync(userId, model);
+
+            return NoContent();
+        }
+
+        [HttpPost("upload-avatar")]
+        public async Task<IActionResult> UploadAvatar(IFormFile avatar)
+        {
+            try
+            {
+                var userId = await GetUserId();
+
+                var avatarPath = await userService.UploadAvatarAsync(userId, avatar);
+                return Ok(new { url = avatarPath });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [Authorize(Roles = "admin")]
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> AdminUpdateUserInfo(int userId, UpdateUserInfoViewModel model)
+        {
             await userService.UpdateUserInfoAsync(userId, model);
 
             return NoContent();

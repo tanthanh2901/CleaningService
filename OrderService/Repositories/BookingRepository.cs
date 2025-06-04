@@ -65,7 +65,7 @@ namespace OrderService.Repositories
             }
             
             //tinh tien
-            var totalAmount = service.BasePrice;
+            var totalAmount = service.BasePrice * 26000;
 
             var order = new Booking
             {
@@ -81,6 +81,7 @@ namespace OrderService.Repositories
                 PaymentStatus = PaymentStatus.Pending,
                 PaymentMethod = checkoutRequest.PaymentMethod,
                 TotalAmount = totalAmount,
+                CreateAt = DateTime.UtcNow,
                 Options = checkoutRequest.Options.Select(o => new BookingOption
                 {
                     OptionKey = o.OptionKey,
@@ -102,6 +103,8 @@ namespace OrderService.Repositories
                     ScheduleTime = checkoutRequest.ScheduleTime,
                     Address = checkoutRequest.Address,
                     ServiceId = order.ServiceId,
+                    ServiceName = order.Name,
+                    CreatedAt = (DateTime)order.CreateAt
                 }
             );
 
@@ -197,9 +200,17 @@ namespace OrderService.Repositories
             if (order == null || order.BookingStatus != BookingStatus.Pending) 
                 return false;
 
-            order.BookingStatus = BookingStatus.Cancelled;
+            order.BookingStatus = BookingStatus.Canceled;
            
             await dbContext.SaveChangesAsync();
+
+            eventBus.PublishAsync(new 
+                BookingStatusChangedEvent
+                {
+                    BookingId = orderId,
+                    ChangedAt = DateTime.UtcNow,
+                    NewStatus = "Cancled"
+                });
             return true;
         }
     }

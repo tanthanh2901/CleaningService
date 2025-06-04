@@ -42,7 +42,7 @@ namespace PaymentService.Services.VnPay
                 Success = true,
                 PaymentMethod = "vnpay",
                 OrderDescription = orderInfo,
-                OrderId = orderId.ToString(),
+                BookingId = orderId.ToString(),
                 PaymentId = vnPayTranId.ToString(),
                 TransactionId = vnPayTranId.ToString(),
                 Token = vnpSecureHash,

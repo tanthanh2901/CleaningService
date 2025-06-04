@@ -12,7 +12,7 @@ using Shared.DbContexts;
 namespace Shared.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20250529082247_InitMigration")]
+    [Migration("20250604105718_InitMigration")]
     partial class InitMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -287,18 +287,18 @@ namespace Shared.Migrations
                             AccessFailedCount = 0,
                             Address = "",
                             Avatar = "",
-                            ConcurrencyStamp = "b3e3354c-f60d-41e1-9228-cc8ca78f5383",
+                            ConcurrencyStamp = "961c54c9-63d4-46f8-980c-257c34334583",
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             FullName = "",
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@GMAIL.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAENpp34VlOt/9VC8q0Wx8X1DZvJytgKVECR97QOwggymDTYRwCpbfIYhV95nQhCBo3A==",
+                            PasswordHash = "AQAAAAIAAYagAAAAENMaOHutv6xi2hgC/dWcxilLvTRGq3FIzGyUSkHcO2VQj7gv5rDqReAS6FxnbS3pYg==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
                             RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SecurityStamp = "2de177a5-00d6-4471-852a-5f59a44d2aef",
+                            SecurityStamp = "8df15462-3724-4674-8668-cc507c74b412",
                             TwoFactorEnabled = false,
                             UserName = "admin"
                         },
@@ -308,18 +308,18 @@ namespace Shared.Migrations
                             AccessFailedCount = 0,
                             Address = "",
                             Avatar = "",
-                            ConcurrencyStamp = "76451ffc-d075-4c16-9701-f7bd3351b7ad",
+                            ConcurrencyStamp = "8e36bd9f-b933-471b-9754-cbcead12a42b",
                             Email = "user@gmail.com",
                             EmailConfirmed = true,
                             FullName = "",
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@GMAIL.COM",
                             NormalizedUserName = "USER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEJGvsZY+M2YJ45elxiSAcKw50kHmKuLlxfaAp70bXvLL0cIBqpXoFCZB4wdqjtFazg==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEOZlQV+4BAQnTQ/TPQynE0fRA3W0cwif95dvcuCx7Ldeg270GmY8sinVF6cOunw8Ww==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
                             RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SecurityStamp = "f07270f1-df74-4dc1-9cf3-59febffdbc61",
+                            SecurityStamp = "2d209af1-6792-422e-91d9-d6a072b02f09",
                             TwoFactorEnabled = false,
                             UserName = "user"
                         },
@@ -329,18 +329,18 @@ namespace Shared.Migrations
                             AccessFailedCount = 0,
                             Address = "",
                             Avatar = "",
-                            ConcurrencyStamp = "20564c84-e809-437f-843f-fed6e3f3a55e",
+                            ConcurrencyStamp = "1206930a-bb39-4d44-936d-d17e21f53e69",
                             Email = "tasker@gmail.com",
                             EmailConfirmed = true,
                             FullName = "",
                             LockoutEnabled = false,
                             NormalizedEmail = "TASKER@GMAIL.COM",
                             NormalizedUserName = "TASKER",
-                            PasswordHash = "AQAAAAIAAYagAAAAEPo4vD/7xh6ZhjgJI+fX+XnUC96LgUUUXwQsqkQ/Yx+01NnxAPqNn5hBlyUekONm+Q==",
+                            PasswordHash = "AQAAAAIAAYagAAAAEJHSzEid8UiSnQT9e1CgUCdQeMWVhEIRIDNApS2OG/EgJ/J0Vlr2a1S/eYehtc8mqA==",
                             PhoneNumberConfirmed = false,
                             RefreshToken = "",
                             RefreshTokenExpiryTime = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            SecurityStamp = "eaedb741-c19a-40e4-b207-97b9dc5da311",
+                            SecurityStamp = "edc32899-dc07-4753-bd0a-402b0c7a5086",
                             TwoFactorEnabled = false,
                             UserName = "tasker"
                         });

@@ -8,6 +8,7 @@ namespace UserService.Interfaces.IRepositories
         Task<AppUser> GetUserById(int userId);
         Task<List<AppUser>> GetAllUsers();
         Task UpdateUserInfo(AppUser user);
+        Task UpdateUserAvatar(int userId, string avatarUrl);
         Task<IdentityResult> DeleteUser(AppUser user);
     }
 }

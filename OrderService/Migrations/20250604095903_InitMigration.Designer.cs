@@ -12,7 +12,7 @@ using OrderService.DbContexts;
 namespace OrderService.Migrations
 {
     [DbContext(typeof(BookingDbContext))]
-    [Migration("20250529080141_InitMigration")]
+    [Migration("20250604095903_InitMigration")]
     partial class InitMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,9 @@ namespace OrderService.Migrations
 
                     b.Property<int>("BookingStatus")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("CreateAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ImageUrl")
                         .IsRequired()
@@ -69,6 +72,9 @@ namespace OrderService.Migrations
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime?>("UpdateAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -91,9 +97,6 @@ namespace OrderService.Migrations
                     b.Property<string>("OptionKey")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrderId")
-                        .HasColumnType("int");
 
                     b.Property<int>("ServiceOptionId")
                         .HasColumnType("int");

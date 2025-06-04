@@ -1,11 +1,11 @@
-﻿using TaskerService.Dtos;
-using TaskerService.Entities;
+﻿using TaskerService.Entities;
 
 namespace TaskerService.Repositories
 {
     public interface ITaskerRepository
     {
         Task CreateTasker(Tasker tasker);
-        Task<Tasker> GetTaskerById(int userId);
+        Task<Tasker> GetTaskerByUserId(int userId);
+        Task<Tasker> GetTaskerByTaskerId(int taskerId);
     }
 }

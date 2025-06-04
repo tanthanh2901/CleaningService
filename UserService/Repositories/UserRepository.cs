@@ -2,27 +2,32 @@
 using Microsoft.EntityFrameworkCore;
 using Shared.DbContexts;
 using Shared.Entities;
-using UserService.Dtos;
 using UserService.Interfaces.IRepositories;
-using UserService.Models;
 
 namespace UserService.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<AppUser> userManager;
-        private readonly RoleManager<AppRole> roleManager;
         private readonly ILogger<UserRepository> _logger;
         private readonly UserDbContext dbContext;
 
-        public UserRepository(UserManager<AppUser> userManager, ILogger<UserRepository> logger, UserDbContext dbContext, RoleManager<AppRole> roleManager)
+        public UserRepository(UserManager<AppUser> userManager, ILogger<UserRepository> logger, UserDbContext dbContext)
         {
             this.userManager = userManager;
             _logger = logger;
             this.dbContext = dbContext;
-            this.roleManager = roleManager;
         }
 
+        public async Task UpdateUserAvatar(int userId, string avatarUrl)
+        {
+            var user = await dbContext.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Avatar = avatarUrl;
+                await dbContext.SaveChangesAsync();
+            }
+        }
         public async Task<IdentityResult> DeleteUser(AppUser user)
             => await userManager.DeleteAsync(user);
 

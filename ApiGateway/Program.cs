@@ -62,7 +62,6 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors("ReactAppPolicy");
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

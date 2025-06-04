@@ -28,9 +28,23 @@ namespace PaymentService.Controllers
             var response = vnPayService.PaymentExecute(Request.Query);
             if (response.Success)
             {
+                var bookingId = long.Parse(response.BookingId);
+
+                var payment = await _dbContext.Payments
+                .FirstOrDefaultAsync(p => p.BookingId == long.Parse(response.BookingId));
+
+                if (payment == null)
+                {
+                    return NotFound($"Payment with BookingId {bookingId} not found.");
+                }
+
+                payment.Status = "Paid";
+
+                await _dbContext.SaveChangesAsync();
+
                 await eventBus.PublishAsync(new PaymentCompletedEvent
                 {
-                    BookingId = long.Parse(response.OrderId),
+                    BookingId = long.Parse(response.BookingId),
                     IsSuccess = response.Success,
                     PaymentMethod = "vnpay",
                 });
@@ -39,19 +53,79 @@ namespace PaymentService.Controllers
             return BadRequest("Thanh toán thất bại");
         }
 
-        [HttpGet("{orderId}/redirect")]
-        public async Task<IActionResult> RedirectToPaymentUrl(int orderId)
+        [HttpGet("{bookingId}/payment-status")]
+        public async Task<IActionResult> GetPaymentStatus(int bookingId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var payment = await _dbContext.Payments
+                    .FirstOrDefaultAsync(p => p.BookingId == bookingId, cancellationToken);
+
+                if (payment == null)
+                {
+                    return Ok(new
+                    {
+                        bookingId = bookingId,
+                        status = "processing",
+                        message = "Payment is being prepared"
+                    });
+                }
+
+                return Ok(new
+                {
+                    bookingId = payment.BookingId,
+                    status = payment.Status.ToLower(),
+                    amount = payment.Amount,
+                    paymentMethod = payment.PaymentMethod,
+                    paymentUrl = payment.PaymentUrl,
+                    createdAt = payment.CreatedAt,
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Internal server error" });
+            }
+        }
+
+        [HttpGet("{bookingId}/payment-url")]
+        public async Task<IActionResult> GetPaymentUrl(int bookingId)
         {
             var payment = await _dbContext.Payments
-                .FirstOrDefaultAsync(p => p.BookingId == orderId);
+                .FirstOrDefaultAsync(p => p.BookingId == bookingId);
 
-            if (payment == null || string.IsNullOrEmpty(payment.PaymentUrl))
+            if (payment == null)
             {
-                return NotFound($"No VNPay payment URL found for order {orderId}.");
+                // Return a specific status indicating payment is still being processed
+                return StatusCode(202, new
+                {
+                    message = "Payment is being prepared. Please try again in a moment.",
+                    bookingId = bookingId,
+                    status = "processing"
+                });
             }
 
-            // Perform HTTP redirect to VNPay URL
-            return Redirect(payment.PaymentUrl);
+            if (string.IsNullOrEmpty(payment.PaymentUrl))
+            {
+                if (payment.PaymentMethod?.ToLower() == "vnpay")
+                {
+                    return StatusCode(202, new
+                    {
+                        message = "Payment URL is being generated. Please try again in a moment.",
+                        bookingId = bookingId,
+                        status = "url_generating"
+                    });
+                }
+                else
+                {
+                    return BadRequest(new
+                    {
+                        message = "Payment URL not available for this payment method",
+                        paymentMethod = payment.PaymentMethod
+                    });
+                }
+            }
+
+            return Ok(new { url = payment.PaymentUrl });
         }
     }
 }

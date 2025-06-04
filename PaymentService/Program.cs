@@ -40,6 +40,11 @@ builder.Services.AddMassTransit(busConfigurator =>
             h.Password(builder.Configuration["MessageBroker:Password"]);
         });
 
+        configurator.ReceiveEndpoint("payment-booking-created-queue", e =>
+        {
+            e.ConfigureConsumer<BookingCreatedConsumer>(context);
+        });
+
         configurator.ConfigureEndpoints(context);
     });
 });

@@ -19,7 +19,12 @@ namespace TaskerService.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<Tasker> GetTaskerById(int userId)
+        public async Task<Tasker> GetTaskerByTaskerId(int taskerId)
+        {
+            return await _context.Taskers.FirstOrDefaultAsync(t => t.TaskerId == taskerId);
+        }
+
+        public async Task<Tasker> GetTaskerByUserId(int userId)
         {
             return await _context.Taskers.FirstOrDefaultAsync(t => t.UserId == userId);
         }

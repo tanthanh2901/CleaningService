@@ -9,6 +9,7 @@ using AutoMapper;
 using CatalogService.AWSS3;
 using Shared.Entities;
 using Shared.Extensions;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace CatalogService.Repositories
 {
@@ -33,9 +34,7 @@ namespace CatalogService.Repositories
 
         public async Task DeleteService(int serviceId)
         {
-            var service = await dbContext.Services
-                        .Include(s => s.Options)
-                        .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
+            var service = await GetByIdWithOptionsAsync(serviceId);
 
             dbContext.ServiceOptions.RemoveRange(service.Options);
             dbContext.Services.Remove(service);
@@ -59,59 +58,29 @@ namespace CatalogService.Repositories
             return mapper.Map<List<ServiceDto>>(listService);
         }
 
-        public async Task<IEnumerable<ServiceDto>> GetServicesByCategory(int categoryId)
-        {
-            var services = await dbContext.Services
-                .Include(x => x.Category)
-                .Include(s => s.Options)
-                .Where(x => (x.CategoryId == categoryId))
-                .ToListAsync();
 
-            return mapper.Map<IEnumerable<ServiceDto>>(services);
+        //
+        public async Task<Service> GetByIdAsync(int serviceId)
+        {
+            return await dbContext.Services.FindAsync(serviceId);
         }
 
-        public async Task UpdateService(int serviceId, ServiceDtoForUpdate dto)
+        public async Task<Service> GetByIdWithOptionsAsync(int serviceId)
         {
-            var service = await dbContext.Services
-                .Include(s => s.Options)
-                .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
+            return await dbContext.Services
+                           .Include(s => s.Options)
+                           .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
+        }
 
-            mapper.Map(dto, service);
-
-            dbContext.ServiceOptions.RemoveRange(service.Options);
-
-            service.Options = dto.Options.Select(opt => mapper.Map<ServiceOption>(opt)).ToList();
-            
+        public async Task UpdateAsync(Service service)
+        {
+            dbContext.Services.Update(service);
             await dbContext.SaveChangesAsync();
         }
 
-        public async Task<PaginationDto<ServiceDto>> GetPaginatedServices(int pageNumber, int pageSize)
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
-            var query = dbContext.Services
-                .Include(s => s.Category)
-                .Include(s => s.Options)
-                .AsQueryable();
-
-            var result = await query.ToPaginatedListAsync(pageNumber, pageSize);
-
-            return mapper.Map<PaginationDto<ServiceDto>>(result);
+            return await dbContext.Database.BeginTransactionAsync();
         }
-
-        public async Task<PaginationDto<ServiceDto>> SearchProduct(string searchQuery, int pageNumber, int pageSize)
-        {
-            IQueryable<Service> query = dbContext.Set<Service>();
-
-            if (!string.IsNullOrEmpty(searchQuery))
-            {
-                query = query.Where(p =>
-                    p.Name.Contains(searchQuery) ||
-                    p.Description.Contains(searchQuery));
-            }
-
-            var result = await query.ToPaginatedListAsync(pageNumber, pageSize);
-
-            return mapper.Map<PaginationDto<ServiceDto>>(result);
-        }
-
     }
 }

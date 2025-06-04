@@ -29,6 +29,13 @@ namespace TaskerService.DbContexts
                 .HasOne(b => b.Tasker)
                 .WithMany()
                 .HasForeignKey(b => b.TaskerId);
+
+            modelBuilder.Entity<Booking>()
+                .Property(b => b.BookingStatus)
+                .HasConversion(
+                    v => v,  // Giữ nguyên khi lưu
+                    v => v   // Giữ nguyên khi đọc
+                );
         }
     }
 }

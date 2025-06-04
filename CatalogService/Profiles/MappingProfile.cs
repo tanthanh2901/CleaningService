@@ -13,15 +13,13 @@ namespace CatalogService.Profiles
             CreateMap<Service, ServiceDtoForCreate>().ReverseMap();
 
             CreateMap<ServiceOption, ServiceOptionDto>().ReverseMap();
+            CreateMap<ServiceDtoForCreate, Service>()
+                .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options));
 
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Category, CategoryForCreateAndUpdate>().ReverseMap();
 
             CreateMap<PaginationDto<Service>, PaginationDto<ServiceDto>>().ReverseMap();
-            CreateMap<ICollection<ServiceOption>, List<ServiceOptionDto>>().ReverseMap();
-
-
-
         }
     }
 }

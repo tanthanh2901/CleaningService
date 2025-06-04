@@ -67,7 +67,7 @@ namespace CatalogService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Unit")
+                    b.Property<string>("TaskDetails")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

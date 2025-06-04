@@ -209,6 +209,22 @@
             }
         },
         {
+            "DownstreamPathTemplate": "/api/users/upload-avatar",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5005
+                }
+            ],
+            "UpstreamPathTemplate": "/users/upload-avatar",
+            "UpstreamHttpMethod": [ "POST" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
             "DownstreamPathTemplate": "/api/users/{userId}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
@@ -273,7 +289,7 @@
             }
         },
         {
-            "DownstreamPathTemplate": "/api/taskers",
+            "DownstreamPathTemplate": "/api/taskers/by-taskerId/{taskerId}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
                 {
@@ -281,8 +297,120 @@
                     "Port": 5008
                 }
             ],
-            "UpstreamPathTemplate": "/taskers",
+            "UpstreamPathTemplate": "/taskers/by-taskerId/{taskerId}",
             "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/by-userId/{userId}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/by-userId/{userId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/get-available/{categoryId}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/get-available/{categoryId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/bookings",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/bookings",
+            "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/bookings/{bookingId}/confirm",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/bookings/{bookingId}/confirm",
+            "UpstreamHttpMethod": [ "POST" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/bookings/{bookingId}/start",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/bookings/{bookingId}/start",
+            "UpstreamHttpMethod": [ "POST" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/bookings/{bookingId}/complete",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/bookings/{bookingId}/complete",
+            "UpstreamHttpMethod": [ "POST" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/set-available",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/set-available",
+            "UpstreamHttpMethod": [ "PUT" ],
             "AuthenticationOptions": {
                 "AuthenticationProviderKey": "Bearer",
                 "AllowedScopes": []
@@ -297,7 +425,31 @@
                     "Port": 5006
                 }
             ],
-            "UpstreamPathTemplate": "/payment/vnpayCallback",
+            "UpstreamPathTemplate": "/payments/vnpayCallback",
+            "UpstreamHttpMethod": [ "GET" ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/payments/{bookingId}/payment-status",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5006
+                }
+            ],
+            "UpstreamPathTemplate": "/payments/{bookingId}/payment-status",
+            "UpstreamHttpMethod": [ "GET" ]
+        },
+        {
+            "DownstreamPathTemplate": "/api/payments/{bookingId}/payment-url",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5006
+                }
+            ],
+            "UpstreamPathTemplate": "/payments/{bookingId}/payment-url",
             "UpstreamHttpMethod": [ "GET" ]
         },
         {
@@ -335,6 +487,18 @@
             ],
             "UpstreamPathTemplate": "/chat/messages/{messageId}",
             "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ]
+        },
+        {
+            "DownstreamPathTemplate": "/uploads/{everything}",
+            "DownstreamScheme": "http",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5005
+                }
+            ],
+            "UpstreamPathTemplate": "/uploads/{everything}",
+            "UpstreamHttpMethod": [ "GET" ]
         }
     ],
     "GlobalConfiguration": {

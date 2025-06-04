@@ -14,7 +14,7 @@ namespace OrderService.Services
 
         public async Task<TaskerDto> GetTaskerById(int taskerId)
         {
-            var response = await client.GetAsync($"/api/services/{taskerId}");
+            var response = await client.GetAsync($"/api/taskers/{taskerId}");
             return await response.ReadContentAs<TaskerDto>();
         }
     }

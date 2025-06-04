@@ -1,7 +1,9 @@
-﻿using AutoMapper;
+﻿using System.Data;
+using AutoMapper;
 using EventBus;
 using MessageBus.IntegrationEvents;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Shared.Entities;
 using UserService.Dtos;
 using UserService.Interfaces.IRepositories;
@@ -180,6 +182,58 @@ namespace UserService.Services
             await eventBus.PublishAsync(taskerEvent);
         }
 
+        public async Task<string> UploadAvatarAsync(int userId, IFormFile avatar)
+        {
+            if (avatar == null || avatar.Length == 0)
+                throw new ArgumentException("No file provided");
+
+            // Validate file type
+            var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
+            if (!allowedTypes.Contains(avatar.ContentType.ToLower()))
+                throw new ArgumentException("Invalid file type. Only JPEG, PNG, and GIF are allowed");
+
+            // Validate file size (e.g., max 5MB)
+            const int maxSizeInBytes = 5 * 1024 * 1024;
+            if (avatar.Length > maxSizeInBytes)
+                throw new ArgumentException("File size exceeds maximum limit of 5MB");
+
+            // Get existing user
+            var user = await userRepository.GetUserById(userId);
+
+            // Delete old avatar file if exists
+            if (!string.IsNullOrEmpty(user.Avatar))
+            {
+                var oldFilePath = Path.Combine("wwwroot", user.Avatar.TrimStart('/'));
+                if (File.Exists(oldFilePath))
+                    File.Delete(oldFilePath);
+            }
+
+            // Generate unique filename
+            var fileExtension = Path.GetExtension(avatar.FileName);
+            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+
+            // Define upload path
+            var uploadPath = Path.Combine("wwwroot", "uploads", "avatars");
+
+            // Create directory if it doesn't exist
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+
+            var filePath = Path.Combine(uploadPath, uniqueFileName);
+
+            // Save file to disk
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await avatar.CopyToAsync(stream);
+            }
+
+            // Update user avatar path in database
+            var avatarPath = $"/uploads/avatars/{uniqueFileName}";
+
+            await userRepository.UpdateUserAvatar(userId, avatarPath);
+
+            return avatarPath;
+        }
         public async Task<bool> UpdateUserInfoAsync(int userId, UpdateUserInfoViewModel model)
         {
             var appUser = await userRepository.GetUserById(userId);
@@ -195,5 +249,7 @@ namespace UserService.Services
 
             return true;
         }
+
+        
     }
 }

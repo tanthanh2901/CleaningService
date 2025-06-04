@@ -8,6 +8,7 @@
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public float RatingAverage { get; set; }
+        public int CompeledTasks { get; set; }
         public bool IsAvailable { get; set; }
         public List<CategoryDto> Categories { get; set; }
     }

@@ -30,11 +30,14 @@ namespace TaskerService.Consumers
                 var booking = new Booking
                 {
                     BookingId = message.BookingId,
+                    ServiceName = message.ServiceName,
                     TaskerId = message.TaskerId,
                     ScheduleTime = message.ScheduleTime,
                     Address = message.Address,
                     TotalAmount = message.TotalAmount,
                     BookingStatus = "Assigned",
+                    CreatedAt = message.CreatedAt
+
                 };
 
                 var tasker = await _dbContext.Taskers

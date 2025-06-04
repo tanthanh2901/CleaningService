@@ -1,8 +1,10 @@
-﻿using AutoMapper;
+﻿using System.ComponentModel.DataAnnotations;
+using AutoMapper;
 using CatalogService.AWSS3;
 using CatalogService.Dtos;
 using CatalogService.Entities;
 using CatalogService.Interface;
+using CatalogService.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CatalogService.Controllers
@@ -12,14 +14,16 @@ namespace CatalogService.Controllers
     public class ServiceController : Controller
     {
         private readonly IServiceRepository serviceRepository; 
+        private readonly IServiceService serviceService;
         private readonly IS3Service s3Service;
         private readonly IMapper mapper;
 
-        public ServiceController(IServiceRepository serviceRepository, IMapper mapper, IS3Service s3Service)
+        public ServiceController(IServiceRepository serviceRepository, IMapper mapper, IS3Service s3Service, IServiceService serviceService)
         {
             this.serviceRepository = serviceRepository;
             this.mapper = mapper;
             this.s3Service = s3Service;
+            this.serviceService = serviceService;
         }
 
         //[HttpGet]
@@ -38,28 +42,34 @@ namespace CatalogService.Controllers
             if (pageSize < 1) pageSize = 10;
             if (pageSize > 50) pageSize = 50; // Limit maximum page size
 
-            var result = await serviceRepository.GetPaginatedServices(pageNumber, pageSize);
+            var result = await serviceService.GetPaginatedServices(pageNumber, pageSize);
             return Ok(result);
         }
 
         [HttpPut("{serviceId}")]
         public async Task<ActionResult<int>> Update(int serviceId, ServiceDtoForUpdate serviceForUpdate)
         {
-            await serviceRepository.UpdateService(serviceId, serviceForUpdate);
-
-            return NoContent();
+            try
+            {
+                var updatedService = await serviceService.UpdateAsync(serviceId, serviceForUpdate);
+                return Ok(updatedService);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{serviceId}")]
         public async Task<ActionResult> Delete(int serviceId)
         {
-            var serviceToDelete = await serviceRepository.GetServiceById(serviceId);
+            var serviceToDelete = await serviceService.GetByIdWithtOptionsAsync(serviceId);
             if (serviceToDelete == null)
             {
                 return NotFound();
             }
 
-            await serviceRepository.DeleteService(serviceId);
+            await serviceService.DeleteService(serviceId);
 
             return NoContent();
         }
@@ -67,12 +77,7 @@ namespace CatalogService.Controllers
         [HttpPost]
         public async Task<ActionResult<int>> Create([FromBody] ServiceDtoForCreate serviceDto)
         {
-            //var imgUrl = await s3Service.UploadFileAsync(serviceDto.Image.OpenReadStream());
-
-            var service = mapper.Map<Service>(serviceDto);
-            //service.ImageUrl = imgUrl;
-
-            await serviceRepository.AddService(service);
+            await serviceService.AddService(serviceDto);
 
             return Created();
         }
@@ -81,7 +86,7 @@ namespace CatalogService.Controllers
         public async Task<ActionResult> GetServicesByCategory(
            int categoryId)
         {
-            var result = await serviceRepository.GetServicesByCategory(categoryId);
+            var result = await serviceService.GetServicesByCategory(categoryId);
 
             return Ok(result);
         }
@@ -89,7 +94,7 @@ namespace CatalogService.Controllers
         [HttpGet("{serviceId}")]
         public async Task<ActionResult<Service>> GetById(int serviceId)
         {
-            var result = await serviceRepository.GetServiceById(serviceId);
+            var result = await serviceService.GetServiceById(serviceId);
 
             if (result == null)
             {
@@ -107,7 +112,7 @@ namespace CatalogService.Controllers
                 return BadRequest("Search query cannot be empty.");
             }
 
-            var services = await serviceRepository.SearchProduct(searchQuery, pageNumber, pageSize);
+            var services = await serviceService.SearchProduct(searchQuery, pageNumber, pageSize);
 
             if (services == null)
             {

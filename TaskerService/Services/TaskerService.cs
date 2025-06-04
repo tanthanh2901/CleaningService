@@ -5,7 +5,6 @@ using TaskerService.Dtos;
 using TaskerService.Entities;
 using TaskerService.Repositories;
 using EventBus;
-using MassTransit;
 using MessageBus.IntegrationEvents;
 using Microsoft.IdentityModel.Tokens;
 
@@ -151,20 +150,55 @@ namespace TaskerService.Services
             }
         }
 
-        public async Task<List<Booking>> GetTaskerBookings(int taskerId, string? status = null)
+        public async Task<bool> StartBooking(int bookingId)
+        {
+            try
+            {
+                var booking = await dbContext.Bookings
+                    .Include(b => b.Tasker)
+                    .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+
+                if (booking == null)
+                {
+                    _logger.LogError("Booking {BookingId} not found", bookingId);
+                    return false;
+                }
+
+                // Update booking status
+                booking.BookingStatus = "InProgress";
+                booking.CompletedAt = DateTime.UtcNow;
+
+                await dbContext.SaveChangesAsync();
+
+                // Publish event to update booking status
+                await eventBus.PublishAsync(new BookingStatusChangedEvent
+                {
+                    BookingId = booking.BookingId,
+                    NewStatus = booking.BookingStatus,
+                    ChangedAt = DateTime.UtcNow
+                });
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error completing booking {BookingId}", bookingId);
+                return false;
+            }
+        }
+
+
+        public async Task<List<Booking>> GetTaskerBookings(int taskerId)
         {
             var query = dbContext.Bookings
                 .Where(b => b.TaskerId == taskerId);
-
-            if (!status.IsNullOrEmpty())
-            {
-                query = query.Where(b => b.BookingStatus == status);
-            }
 
             return await query
                 .OrderByDescending(b => b.ScheduleTime)
                 .ToListAsync();
         }
+
+
 
         public async Task<List<TaskerWithCategoriesDto>> GetAvailableTaskersByCategory(int categoryId)
         {
@@ -182,9 +216,9 @@ namespace TaskerService.Services
             return mapper.Map<List<TaskerWithCategoriesDto>>(taskers);
         }
 
-        public async Task<bool> SetAvailable(int taskerId)
+        public async Task<bool> SetAvailable(int userId)
         {
-            var tasker = await taskerRepository.GetTaskerById(taskerId);
+            var tasker = await taskerRepository.GetTaskerByUserId(userId);
 
             if (tasker != null)
             {
@@ -197,5 +231,14 @@ namespace TaskerService.Services
                 return false;
         }
 
+        public async Task<Tasker> GetTaskerByTaskerId(int taskerId)
+        {
+            return await taskerRepository.GetTaskerByTaskerId(taskerId);
+        }
+
+        public async Task<Tasker> GetTaskerByUserId(int UserId)
+        {
+            return await taskerRepository.GetTaskerByUserId(UserId);
+        }
     }
 }
