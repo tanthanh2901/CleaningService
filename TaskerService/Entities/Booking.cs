@@ -11,10 +11,11 @@ namespace TaskerService.Entities
         public int TaskerId { get; set; }
         public DateTime ScheduleTime { get; set; }
         public string Address { get; set; }
+        public string PhoneNumber { get; set; }
         public string ServiceName { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal TotalAmount { get; set; }
-        public string BookingStatus { get; set; }
+        public BookingStatus BookingStatus { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; }
         public DateTime? CompletedAt { get; set; }

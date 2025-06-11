@@ -86,6 +86,11 @@ builder.Services.AddMassTransit(busConfigurator =>
             h.Password(builder.Configuration["MessageBroker:Password"]);
         });
 
+        configurator.ReceiveEndpoint("user-became-tasker", e =>
+        {
+            e.ConfigureConsumer<UserBecameTaskerConsumer>(context);
+        });
+
         configurator.ReceiveEndpoint("tasker-booking-created-queue", e =>
         {
             e.ConfigureConsumer<BookingCreatedConsumer>(context);

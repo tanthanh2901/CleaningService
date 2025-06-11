@@ -1,5 +1,6 @@
 ﻿using MassTransit;
 using MessageBus.IntegrationEvents;
+using OrderService.DbContexts;
 using OrderService.Enums;
 using OrderService.Interface;
 
@@ -12,7 +13,8 @@ namespace OrderService.Consumers
 
         public BookingStatusChangedConsumer(
             IBookingRepository bookingRepository,
-            ILogger<BookingStatusChangedConsumer> logger)
+            ILogger<BookingStatusChangedConsumer> logger
+            )
         {
             _bookingRepository = bookingRepository;
             _logger = logger;
@@ -55,7 +57,7 @@ namespace OrderService.Consumers
                         return;
                 }
 
-                await _bookingRepository.UpdateBookingStatusAsync(message.BookingId, statusToUpdate, null);
+                await _bookingRepository.UpdateBookingStatusAsync(message.BookingId, statusToUpdate, null, message.ChangedAt);
                 _logger.LogInformation("Successfully updated booking {BookingId} status to {Status}", 
                     message.BookingId, statusToUpdate);
             }

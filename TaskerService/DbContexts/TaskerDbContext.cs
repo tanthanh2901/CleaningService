@@ -30,12 +30,13 @@ namespace TaskerService.DbContexts
                 .WithMany()
                 .HasForeignKey(b => b.TaskerId);
 
-            modelBuilder.Entity<Booking>()
-                .Property(b => b.BookingStatus)
-                .HasConversion(
-                    v => v,  // Giữ nguyên khi lưu
-                    v => v   // Giữ nguyên khi đọc
-                );
+            //modelBuilder.Entity<Booking>(entity =>
+            //{
+            //    entity.Property(b => b.BookingStatus)
+            //        .HasMaxLength(50) // Optional: set max length
+            //        .IsUnicode()       // Use NVARCHAR
+            //        .IsRequired();     // Optional: make non-nullable
+            //});
         }
     }
 }

@@ -144,7 +144,7 @@ namespace UserService.Controllers
                 Email = request.Email,
                 Password = request.Password,
                 PhoneNumber = request.PhoneNumber,
-                Role = "tasker"
+                Role = "customer"
             });
 
             if (result.Succeeded)

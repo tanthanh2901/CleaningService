@@ -12,6 +12,7 @@ using EventBus;
 using MassTransit;
 using UserService.Interfaces.IRepositories;
 using UserService.Interfaces.IServices;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -87,6 +88,8 @@ builder.Services.AddMassTransit(busConfigurator =>
 
 var app = builder.Build();
 
+app.UseStaticFiles();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
@@ -101,6 +104,5 @@ if (app.Environment.IsDevelopment())
 app.MapControllers();
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 
 app.Run();

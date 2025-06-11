@@ -57,13 +57,18 @@ namespace OrderService.Repositories
             var optionsDict = checkoutRequest.Options.ToDictionary(o => o.OptionKey, o => o.Value);
             foreach (var requiredOption in service.Options)
             {
-                if (!optionsDict.ContainsKey(requiredOption.OptionKey))
-                    throw new Exception($"Missing required option: {requiredOption.OptionKey}");
+                //if (!optionsDict.ContainsKey(requiredOption.OptionKey))
+                //    throw new Exception($"Missing required option: {requiredOption.OptionKey}");
 
-                string value = optionsDict[requiredOption.OptionKey];
-                ValidateOptionDataType(requiredOption.DataType, value);
+                //string value = optionsDict[requiredOption.OptionKey];
+                //ValidateOptionDataType(requiredOption.DataType, value);
+
+                if (optionsDict.TryGetValue(requiredOption.OptionKey, out string value))
+                {
+                    ValidateOptionDataType(requiredOption.DataType, value);
+                }
             }
-            
+
             //tinh tien
             var totalAmount = service.BasePrice * 26000;
 
@@ -81,7 +86,7 @@ namespace OrderService.Repositories
                 PaymentStatus = PaymentStatus.Pending,
                 PaymentMethod = checkoutRequest.PaymentMethod,
                 TotalAmount = totalAmount,
-                CreateAt = DateTime.UtcNow,
+                CreateAt = DateTime.Now,
                 Options = checkoutRequest.Options.Select(o => new BookingOption
                 {
                     OptionKey = o.OptionKey,
@@ -115,6 +120,7 @@ namespace OrderService.Repositories
         {
             var bookings = await dbContext.Bookings
                     .Where(o => o.UserId == userId)
+                    .OrderByDescending(b => b.CreateAt)
                     .ToListAsync();
 
             var bookingDtos = mapper.Map<IEnumerable<BookingDto>>(bookings);
@@ -138,6 +144,7 @@ namespace OrderService.Repositories
         public async Task<IEnumerable<BookingDto>> GetAllBookings()
         {
             var orders = await dbContext.Bookings
+                    .OrderByDescending(b => b.CreateAt)
                     .ToListAsync();
             return mapper.Map<IEnumerable<BookingDto>>(orders);
         }
@@ -155,7 +162,7 @@ namespace OrderService.Repositories
             return mapper.Map<IEnumerable<BookingDto>>(filteredOrders);
         }
 
-        public async Task<bool> UpdateBookingStatusAsync(int orderId, Enums.BookingStatus? bookingStatus, PaymentStatus? paymentStatus)
+        public async Task<bool> UpdateBookingStatusAsync(int orderId, Enums.BookingStatus? bookingStatus, PaymentStatus? paymentStatus, DateTime? updatedAt = null)
         {
             var order = await dbContext.Bookings.FindAsync(orderId);
             if (order == null) return false;
@@ -169,6 +176,9 @@ namespace OrderService.Repositories
             {
                 order.PaymentStatus = paymentStatus.Value;
             }
+
+            order.UpdateAt = updatedAt ?? DateTime.Now;
+
             await dbContext.SaveChangesAsync();
             return true;
         }
@@ -183,7 +193,7 @@ namespace OrderService.Repositories
                     case "int": int.Parse(value); break;
                     case "decimal": decimal.Parse(value); break;
                     case "bool": bool.Parse(value); break;
-                    case "string": break; // luôn hợp lệ
+                    case "number": break; // luôn hợp lệ
                     default: throw new Exception($"Unsupported data type: {dataType}");
                 }
             }
@@ -201,16 +211,17 @@ namespace OrderService.Repositories
                 return false;
 
             order.BookingStatus = BookingStatus.Canceled;
-           
+            order.UpdateAt = DateTime.Now;
+
             await dbContext.SaveChangesAsync();
 
-            eventBus.PublishAsync(new 
+            eventBus.PublishAsync(new
                 BookingStatusChangedEvent
-                {
-                    BookingId = orderId,
-                    ChangedAt = DateTime.UtcNow,
-                    NewStatus = "Cancled"
-                });
+            {
+                BookingId = orderId,
+                ChangedAt = DateTime.UtcNow,
+                NewStatus = BookingStatus.Canceled.ToString()
+            }); 
             return true;
         }
     }

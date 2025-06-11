@@ -2,6 +2,7 @@
 using MessageBus.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 using TaskerService.DbContexts;
+using TaskerService.Entities;
 
 namespace TaskerService.Consumers
 {
@@ -35,7 +36,16 @@ namespace TaskerService.Consumers
 
                 var bookingStatus = message.NewStatus.ToLower();
 
-                booking.BookingStatus = bookingStatus;
+
+                switch (bookingStatus)
+                {
+                    case "canceled":
+                        booking.BookingStatus = BookingStatus.Canceled;
+                        break;
+                    default:
+                        _logger.LogWarning("Unknown booking status: {Status}", message.NewStatus);
+                        return;
+                }
 
                 _dbContext.Bookings.Update(booking);
                 await _dbContext.SaveChangesAsync();

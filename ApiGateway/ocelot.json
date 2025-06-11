@@ -13,6 +13,18 @@
             "UpstreamHttpMethod": [ "GET", "POST" ]
         },
         {
+            "DownstreamPathTemplate": "/api/services/search",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5003
+                }
+            ],
+            "UpstreamPathTemplate": "/catalog/services/search",
+            "UpstreamHttpMethod": [ "GET" ]
+        },
+        {
             "DownstreamPathTemplate": "/api/services/{serviceId}",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
@@ -218,7 +230,7 @@
                 }
             ],
             "UpstreamPathTemplate": "/users/upload-avatar",
-            "UpstreamHttpMethod": [ "POST" ],
+            "UpstreamHttpMethod": [ "GET", "POST" ],
             "AuthenticationOptions": {
                 "AuthenticationProviderKey": "Bearer",
                 "AllowedScopes": []

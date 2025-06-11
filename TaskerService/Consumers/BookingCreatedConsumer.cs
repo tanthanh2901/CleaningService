@@ -34,8 +34,9 @@ namespace TaskerService.Consumers
                     TaskerId = message.TaskerId,
                     ScheduleTime = message.ScheduleTime,
                     Address = message.Address,
+                    PhoneNumber = message.PhoneNumber,
                     TotalAmount = message.TotalAmount,
-                    BookingStatus = "Assigned",
+                    BookingStatus = BookingStatus.Assigned,
                     CreatedAt = message.CreatedAt
 
                 };

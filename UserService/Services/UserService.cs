@@ -243,9 +243,10 @@ namespace UserService.Services
                 return false;
             }
 
-            var userToUpdate = mapper.Map<AppUser>(model);
-
-            await userRepository.UpdateUserInfo(userToUpdate);
+            //var userToUpdate = mapper.Map<AppUser>(model);
+            
+            mapper.Map(model, appUser);
+            await userRepository.UpdateUserInfo(appUser);
 
             return true;
         }

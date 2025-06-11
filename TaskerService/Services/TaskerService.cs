@@ -88,15 +88,20 @@ namespace TaskerService.Services
 
                 tasker.IsAvailable = false;
 
-                booking.BookingStatus = "Confirmed";
+                booking.BookingStatus = BookingStatus.Confirmed;
+                booking.UpdatedAt = DateTime.Now;
+
+                dbContext.Bookings.Update(booking);
+                dbContext.Taskers.Update(tasker);
+
                 await dbContext.SaveChangesAsync();
 
                 // Publish event to update booking status
                 await eventBus.PublishAsync(new BookingStatusChangedEvent
                 {
                     BookingId = booking.BookingId,
-                    NewStatus = booking.BookingStatus,
-                    ChangedAt = DateTime.UtcNow
+                    NewStatus = booking.BookingStatus.ToString(),
+                    ChangedAt = booking.UpdatedAt
                 });
 
                 return true;
@@ -123,13 +128,16 @@ namespace TaskerService.Services
                 }
 
                 // Update booking status
-                booking.BookingStatus = "Completed";
-                booking.CompletedAt = DateTime.UtcNow;
+                booking.BookingStatus = BookingStatus.Completed;
+                booking.CompletedAt = DateTime.Now;
 
                 // Update tasker stats
                 var tasker = booking.Tasker;
                 tasker.CompletedTasks++;
                 tasker.IsAvailable = true;  // Make tasker available again
+
+                dbContext.Bookings.Update(booking);
+                dbContext.Taskers.Update(tasker);
 
                 await dbContext.SaveChangesAsync();
 
@@ -137,8 +145,8 @@ namespace TaskerService.Services
                 await eventBus.PublishAsync(new BookingStatusChangedEvent
                 {
                     BookingId = booking.BookingId,
-                    NewStatus = booking.BookingStatus,
-                    ChangedAt = DateTime.UtcNow
+                    NewStatus = booking.BookingStatus.ToString(),
+                    ChangedAt = DateTime.Now
                 });
 
                 return true;
@@ -165,17 +173,18 @@ namespace TaskerService.Services
                 }
 
                 // Update booking status
-                booking.BookingStatus = "InProgress";
-                booking.CompletedAt = DateTime.UtcNow;
+                booking.BookingStatus = BookingStatus.InProgress;
+                booking.UpdatedAt = DateTime.Now;
 
+                dbContext.Bookings.Update(booking);
                 await dbContext.SaveChangesAsync();
 
                 // Publish event to update booking status
                 await eventBus.PublishAsync(new BookingStatusChangedEvent
                 {
                     BookingId = booking.BookingId,
-                    NewStatus = booking.BookingStatus,
-                    ChangedAt = DateTime.UtcNow
+                    NewStatus = booking.BookingStatus.ToString(),
+                    ChangedAt = booking.UpdatedAt
                 });
 
                 return true;

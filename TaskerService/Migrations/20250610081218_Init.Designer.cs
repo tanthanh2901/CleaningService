@@ -12,8 +12,8 @@ using TaskerService.DbContexts;
 namespace TaskerService.Migrations
 {
     [DbContext(typeof(TaskerDbContext))]
-    [Migration("20250604103008_InitMigration")]
-    partial class InitMigration
+    [Migration("20250610081218_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -33,9 +33,8 @@ namespace TaskerService.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BookingStatus")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("BookingStatus")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");

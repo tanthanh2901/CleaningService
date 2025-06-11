@@ -9,7 +9,7 @@ namespace OrderService.Interface
         Task<IEnumerable<BookingDto>> GetAllBookings();
         Task<IEnumerable<BookingDto>> GetBookings(int userId);
         Task<BookingDto> GetBookingByIdAsync(int orderId);
-        Task<bool> UpdateBookingStatusAsync(int orderId, BookingStatus? bookingStatus, PaymentStatus? paymentStatus);
+        Task<bool> UpdateBookingStatusAsync(int orderId, BookingStatus? bookingStatus, PaymentStatus? paymentStatus, DateTime? updatedAt = null);
         Task<IEnumerable<BookingDto>> GetBookingByStatus(int userId, BookingStatus bookingStatus);
         Task<BookingDto> Checkout(CheckoutRequest checkoutRequest);
         Task<bool> CancelBooking(int orderId);
