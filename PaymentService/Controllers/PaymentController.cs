@@ -26,7 +26,7 @@ namespace PaymentService.Controllers
         public async Task<IActionResult> VnPayCallback()
         {
             var response = vnPayService.PaymentExecute(Request.Query);
-            if (response.Success)
+            if (response.VnPayResponseCode == "00")
             {
                 var bookingId = long.Parse(response.BookingId);
 

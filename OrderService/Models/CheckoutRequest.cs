@@ -1,5 +1,4 @@
-﻿using OrderService.Dtos;
-using OrderService.Enums;
+﻿using Shared.Enums;
 
 namespace OrderService.Models
 {
@@ -11,7 +10,7 @@ namespace OrderService.Models
         public DateTime ScheduleTime { get; set; }
         public string PhoneNumber { get; set; } = string.Empty;
         public PaymentMethodType PaymentMethod { get; set; }
-
-        public List<BookingOptionDto> Options { get; set; }
+        public int SelectedDurationConfigId { get; set; }
+        public List<int> SelectedPremiumServiceIds { get; set; } = new();
     }
 }

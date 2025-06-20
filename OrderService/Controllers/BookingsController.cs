@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrderService.Dtos;
-using OrderService.Enums;
 using OrderService.Interface;
 using OrderService.Models;
+using Shared.Enums;
 
 namespace OrderService.Controllers
 {
@@ -52,6 +52,14 @@ namespace OrderService.Controllers
             return Ok(orders);
         }
 
+        [HttpGet("tasker/{taskerId}")]
+        [Authorize(Roles = "tasker")]
+        public async Task<ActionResult<List<BookingDto>>> GetBookingsByTasker(int taskerId)
+        {
+            var orders = await orderRepository.GetBookingsByTaskerId(taskerId);
+            return Ok(orders);
+        }
+
         [HttpGet("{orderId}")]
         public async Task<IActionResult> GetOrder(int orderId)
         {
@@ -81,6 +89,7 @@ namespace OrderService.Controllers
 
         [Authorize(Roles = "admin")]
         [HttpPut("update-status")]
+        [Authorize(Roles = "tasker")]
         public async Task<ActionResult<bool>> UpdateBookingStatus([FromBody] UpdateBookingStatusModel dto)
         {
             var result = await orderRepository.UpdateBookingStatusAsync(dto.BookingId, dto.BookingStatus, dto.PaymentStatus);

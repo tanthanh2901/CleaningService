@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Shared.Migrations
 {
-    public partial class InitMigration : Migration
+    public partial class Init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -176,9 +176,9 @@ namespace Shared.Migrations
                 columns: new[] { "Id", "AccessFailedCount", "Address", "Avatar", "ConcurrencyStamp", "Email", "EmailConfirmed", "FullName", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "RefreshToken", "RefreshTokenExpiryTime", "SecurityStamp", "TwoFactorEnabled", "UserName" },
                 values: new object[,]
                 {
-                    { 1, 0, "", "", "961c54c9-63d4-46f8-980c-257c34334583", "admin@gmail.com", true, "", false, null, "ADMIN@GMAIL.COM", "ADMIN", "AQAAAAIAAYagAAAAENMaOHutv6xi2hgC/dWcxilLvTRGq3FIzGyUSkHcO2VQj7gv5rDqReAS6FxnbS3pYg==", null, false, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "8df15462-3724-4674-8668-cc507c74b412", false, "admin" },
-                    { 2, 0, "", "", "8e36bd9f-b933-471b-9754-cbcead12a42b", "user@gmail.com", true, "", false, null, "USER@GMAIL.COM", "USER", "AQAAAAIAAYagAAAAEOZlQV+4BAQnTQ/TPQynE0fRA3W0cwif95dvcuCx7Ldeg270GmY8sinVF6cOunw8Ww==", null, false, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "2d209af1-6792-422e-91d9-d6a072b02f09", false, "user" },
-                    { 3, 0, "", "", "1206930a-bb39-4d44-936d-d17e21f53e69", "tasker@gmail.com", true, "", false, null, "TASKER@GMAIL.COM", "TASKER", "AQAAAAIAAYagAAAAEJHSzEid8UiSnQT9e1CgUCdQeMWVhEIRIDNApS2OG/EgJ/J0Vlr2a1S/eYehtc8mqA==", null, false, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "edc32899-dc07-4753-bd0a-402b0c7a5086", false, "tasker" }
+                    { 1, 0, "", "", "d5c60e40-d3a2-4109-a147-fff00504cd49", "admin@gmail.com", true, "", false, null, "ADMIN@GMAIL.COM", "ADMIN", "AQAAAAIAAYagAAAAEHXj73p5ezshmjPI4a5GUBiXq0nex13PiVc5r2Fi/HnEMvuY1J18GOv7j6vZM/HfQw==", null, false, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "0c9321fe-6309-452e-8ebe-56f11e6e35e3", false, "admin" },
+                    { 2, 0, "", "", "266361a5-f07d-419e-a0c6-29f8f3e7df84", "user@gmail.com", true, "", false, null, "USER@GMAIL.COM", "USER", "AQAAAAIAAYagAAAAEBVxXQhQ1CxSs0adPIyRhBEJHp1yZoX8U4r1mIox//lwOEY3KPbLmz1WjgDLO1Afgg==", null, false, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "1f5840ad-10a7-44ca-b094-2af0e264001d", false, "user" },
+                    { 3, 0, "", "", "7fe9f81f-5371-4755-b97f-0f51e874f7d6", "tasker@gmail.com", true, "", false, null, "TASKER@GMAIL.COM", "TASKER", "AQAAAAIAAYagAAAAEAn/xKCVwpd1ko9oLj/3l5nx0l3slSZvIuIdBP82132LhU8smRTwepGW0smUuT/4kw==", null, false, "", new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "e45b5c66-e0d0-459f-b8b8-cf249e005339", false, "tasker" }
                 });
 
             migrationBuilder.InsertData(

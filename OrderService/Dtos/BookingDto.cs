@@ -1,4 +1,4 @@
-﻿using OrderService.Enums;
+﻿using Shared.Enums;
 
 namespace OrderService.Dtos
 {
@@ -17,7 +17,7 @@ namespace OrderService.Dtos
         public PaymentMethodType PaymentMethod { get; set; }
         public string Name { get; set; }
         public string ImageUrl { get; set; }
-        public int TaskerId { get; set; }
-        public TaskerDto Tasker { get; set; }
+        //public int TaskerId { get; set; }
+        //public TaskerDto Tasker { get; set; }
     }
 }

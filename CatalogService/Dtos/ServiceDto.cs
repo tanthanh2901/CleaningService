@@ -1,4 +1,6 @@
-﻿namespace CatalogService.Dtos
+﻿using CatalogService.Entities;
+
+namespace CatalogService.Dtos
 {
     public class ServiceDto
     {
@@ -10,6 +12,9 @@
         public decimal BasePrice { get; set; }
         public int CategoryId { get; set; }
         public string CategoryName { get; set; }
-        public ICollection<ServiceOptionDto> Options { get; set; }
+        //public ICollection<ServiceOptionDto> Options { get; set; }
+        public ICollection<DurationConfig> DurationConfigs { get; set; }
+        public ICollection<PremiumService> PremiumServices { get; set; }
+
     }
 }

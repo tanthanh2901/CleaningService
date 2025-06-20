@@ -13,10 +13,12 @@ namespace CatalogService.Entities
         public string TaskDetails { get; set; }
         [Column(TypeName = "decimal(18, 2)")]
         public decimal BasePrice { get; set; }
-        public int Duration { get; set; }
+        public string PriceUnit { get; set; } = string.Empty; // per_hour, per_room, per_sqm
         public int CategoryId { get; set; }
         public Category Category { get; set; }
 
-        public ICollection<ServiceOption> Options { get; set; } = new List<ServiceOption>();
+        //public ICollection<ServiceOption> Options { get; set; } = new List<ServiceOption>();
+        public ICollection<DurationConfig> DurationConfigs { get; set; } = new List<DurationConfig>();
+        public ICollection<PremiumService> PremiumServices { get; set; } = new List<PremiumService>();
     }
 }

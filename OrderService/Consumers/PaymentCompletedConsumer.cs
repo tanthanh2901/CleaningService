@@ -2,7 +2,7 @@
 using MessageBus.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 using OrderService.DbContexts;
-using OrderService.Enums;
+using Shared.Enums;
 
 namespace OrderService.Consumers
 {

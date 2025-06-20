@@ -15,15 +15,17 @@ namespace CatalogService.Controllers
     {
         private readonly IServiceRepository serviceRepository; 
         private readonly IServiceService serviceService;
+        private readonly IServiceManagementService serviceManagementService;
         private readonly IS3Service s3Service;
         private readonly IMapper mapper;
 
-        public ServiceController(IServiceRepository serviceRepository, IMapper mapper, IS3Service s3Service, IServiceService serviceService)
+        public ServiceController(IServiceRepository serviceRepository, IMapper mapper, IS3Service s3Service, IServiceService serviceService, IServiceManagementService serviceManagement)
         {
             this.serviceRepository = serviceRepository;
             this.mapper = mapper;
             this.s3Service = s3Service;
             this.serviceService = serviceService;
+            serviceManagementService = serviceManagement;
         }
 
         //[HttpGet]
@@ -63,7 +65,7 @@ namespace CatalogService.Controllers
         [HttpDelete("{serviceId}")]
         public async Task<ActionResult> Delete(int serviceId)
         {
-            var serviceToDelete = await serviceService.GetByIdWithtOptionsAsync(serviceId);
+            var serviceToDelete = await serviceService.GetServiceById(serviceId);
             if (serviceToDelete == null)
             {
                 return NotFound();
@@ -77,6 +79,11 @@ namespace CatalogService.Controllers
         [HttpPost]
         public async Task<ActionResult<int>> Create([FromBody] ServiceDtoForCreate serviceDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             await serviceService.AddService(serviceDto);
 
             return Created();
@@ -120,6 +127,20 @@ namespace CatalogService.Controllers
             }
 
             return Ok(services);
+        }
+
+        [HttpGet("durations/{durationsId}")]
+        public async Task<ActionResult<DurationConfig>> GetDurationConfig(int durationsId)
+        {
+            var configs = await serviceManagementService.GetDurationConfigAsync(durationsId);
+            return Ok(configs);
+        }
+
+        [HttpGet("premiums")]
+        public async Task<ActionResult<IEnumerable<PremiumService>>> GetPremiumServicesByIdsAsync([FromQuery] List<int> premiumServiceIds)
+        {
+            var premiumServices = await serviceManagementService.GetPremiumServicesByIdsAsync(premiumServiceIds);
+            return Ok(premiumServices);
         }
     }
 }

@@ -12,8 +12,8 @@ using PaymentService.DbContexts;
 namespace PaymentService.Migrations
 {
     [DbContext(typeof(PaymentDbContext))]
-    [Migration("20250604100858_InitMigration")]
-    partial class InitMigration
+    [Migration("20250619080914_Init")]
+    partial class Init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

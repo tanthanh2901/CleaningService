@@ -17,7 +17,7 @@ namespace UserService.Interfaces.IServices
 
         Task<IdentityResult> CreateUserAsync(CreateUserRequest createUserRequest);
         Task<bool> AssignRoleAsync(int userId, string role);
-        Task PromoteToTaskerAsync(int userId, List<int> categoryIds);
+        Task<bool> PromoteToTaskerAsync(int userId, List<int> categoryIds);
 
         Task<List<UserDto>> GetAllUsersAsync();
         Task<bool> DeleteUserAsync(int userId);

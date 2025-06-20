@@ -11,7 +11,8 @@ namespace OrderService.DbContexts
         }
 
         public DbSet<Booking> Bookings { get; set; } = default!;
-        public DbSet<BookingOption> BookingOptions { get; set; } = default!;
+        public DbSet<BookingDuration> BookingDurations { get; set; } = default!;
+        public DbSet<BookingPremium> BookingPreminums { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

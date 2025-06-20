@@ -1,8 +1,7 @@
 ﻿using MassTransit;
 using MessageBus.IntegrationEvents;
-using OrderService.DbContexts;
-using OrderService.Enums;
 using OrderService.Interface;
+using Shared.Enums;
 
 namespace OrderService.Consumers
 {
@@ -40,6 +39,9 @@ namespace OrderService.Consumers
 
                 switch (bookingStatus)
                 {
+                    case "assigned":
+                        statusToUpdate = BookingStatus.Assigned;
+                        break;
                     case "confirmed":
                         statusToUpdate = BookingStatus.Confirmed;
                         break;

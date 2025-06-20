@@ -2,7 +2,6 @@
 using MessageBus;
 using OrderService.Dtos;
 using OrderService.Entities;
-using OrderService.Enums;
 
 namespace OrderService.Profiles
 {
@@ -11,9 +10,10 @@ namespace OrderService.Profiles
         public MappingProfile() 
         {
             CreateMap<Booking, BookingDto>().ReverseMap();
+            CreateMap<Booking, BookingDetailsDto>().ReverseMap();
             CreateMap<Service, ServiceDto>().ReverseMap();
 
-            CreateMap<Enums.PaymentMethodType, MessageBus.PaymentMethodType>().ReverseMap();
+            //CreateMap<Enums.PaymentMethodType, MessageBus.PaymentMethodType>().ReverseMap();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace OrderService.Enums
+﻿namespace Shared.Enums
 {
     public enum BookingStatus
     {

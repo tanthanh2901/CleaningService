@@ -147,14 +147,20 @@ namespace UserService.Controllers
                 Role = "customer"
             });
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
             {
-                var user = await userManager.FindByEmailAsync(request.Email);
-                await userService.PromoteToTaskerAsync(user.Id, request.CategoryIds);
-                return Ok("Tasker created");
+                return BadRequest();
             }
+            
+            var user = await userManager.FindByEmailAsync(request.Email);
+            if(user == null)
+                return BadRequest();
 
-            return BadRequest(result.Errors);
+            var promotionSuccess  = await userService.PromoteToTaskerAsync(user.Id, request.CategoryIds);
+            if(!promotionSuccess)
+                return BadRequest();
+
+            return Ok("Tasker created");
         }
 
         [Authorize(Roles = "admin")]

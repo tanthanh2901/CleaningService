@@ -65,7 +65,11 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<ICatalogService, CatalogService>(c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiConfigs:CatalogService:Uri"]));
 
+builder.Services.AddHttpClient<IBookingService, BookingService>(c =>
+    c.BaseAddress = new Uri(builder.Configuration["ApiConfigs:BookingService:Uri"]));
+
 builder.Services.AddScoped<ITaskerRepository, TaskerRepository>();
+builder.Services.AddScoped<ITaskerAvailabilityService, TaskerAvailabilityService>();
 builder.Services.AddScoped<ITaskerService, TaskerService.Services.TaskerService>();
 
 builder.Services.AddScoped<IEventBus, MessageBus.EventBus>();
@@ -75,6 +79,7 @@ builder.Services.AddMassTransit(busConfigurator =>
     busConfigurator.AddConsumer<UserBecameTaskerConsumer>();
     busConfigurator.AddConsumer<BookingCreatedConsumer>();
     busConfigurator.AddConsumer<BookingStatusChangedConsumer>();
+    busConfigurator.AddConsumer<TaskerInfoUpdatedConsumer>();
 
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 
@@ -99,6 +104,11 @@ builder.Services.AddMassTransit(busConfigurator =>
         configurator.ReceiveEndpoint("tasker-canceled-booking-queue", e =>
         {
             e.ConfigureConsumer<BookingStatusChangedConsumer>(context);
+        });
+
+        configurator.ReceiveEndpoint("tasker-info-updated-queue", e =>
+        {
+            e.ConfigureConsumer<TaskerInfoUpdatedConsumer>(context);
         });
 
         configurator.ConfigureEndpoints(context);

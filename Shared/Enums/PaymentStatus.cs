@@ -1,10 +1,10 @@
-﻿namespace OrderService.Enums
+﻿namespace Shared.Enums
 {
     public enum PaymentStatus
     {
         Pending = 0,
         Paid = 1,
-        UnPaid = 2,
-        Fail = 3
+        Fail = 2,
+        Canceled = 3
     }
 }

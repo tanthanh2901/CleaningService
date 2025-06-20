@@ -1,6 +1,8 @@
+using EventBus;
 using MassTransit;
 using MessageBus.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
+using Shared.Enums;
 using TaskerService.DbContexts;
 using TaskerService.Entities;
 
@@ -9,14 +11,18 @@ namespace TaskerService.Consumers
     public class BookingCreatedConsumer : IConsumer<BookingCreatedEvent>
     {
         private readonly TaskerDbContext _dbContext;
+        private readonly IEventBus _eventBus;
         private readonly ILogger<BookingCreatedConsumer> _logger;
+
 
         public BookingCreatedConsumer(
             TaskerDbContext dbContext,
-            ILogger<BookingCreatedConsumer> logger)
+            ILogger<BookingCreatedConsumer> logger,
+            IEventBus eventBus)
         {
             _dbContext = dbContext;
             _logger = logger;
+            _eventBus = eventBus;
         }
 
         public async Task Consume(ConsumeContext<BookingCreatedEvent> context)
@@ -25,21 +31,6 @@ namespace TaskerService.Consumers
             try
             {
                 _logger.LogInformation("Processing BookingCreatedEvent for order {BookingId}", message.BookingId);
-
-                // Create booking record
-                var booking = new Booking
-                {
-                    BookingId = message.BookingId,
-                    ServiceName = message.ServiceName,
-                    TaskerId = message.TaskerId,
-                    ScheduleTime = message.ScheduleTime,
-                    Address = message.Address,
-                    PhoneNumber = message.PhoneNumber,
-                    TotalAmount = message.TotalAmount,
-                    BookingStatus = BookingStatus.Assigned,
-                    CreatedAt = message.CreatedAt
-
-                };
 
                 var tasker = await _dbContext.Taskers
                     .FirstOrDefaultAsync(t => t.TaskerId == message.TaskerId);
@@ -50,9 +41,17 @@ namespace TaskerService.Consumers
                     return;
                 }
 
-                booking.Tasker = tasker;
-                _dbContext.Bookings.Add(booking);
-                await _dbContext.SaveChangesAsync();
+                //tasker.IsAvailable = false;
+
+                //_dbContext.Taskers.Update(tasker);
+                //await _dbContext.SaveChangesAsync();
+
+                _eventBus.PublishAsync(new BookingStatusChangedEvent()
+                {
+                    BookingId = message.BookingId,
+                    NewStatus = Shared.Enums.BookingStatus.Assigned.ToString(),
+                    ChangedAt = DateTime.Now
+                });
 
                 _logger.LogInformation("Successfully created booking for order {BookingId}", message.BookingId);
             }

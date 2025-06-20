@@ -3,19 +3,21 @@ using MessageBus.IntegrationEvents;
 using Microsoft.EntityFrameworkCore;
 using TaskerService.DbContexts;
 using TaskerService.Entities;
+using TaskerService.Services;
 
 namespace TaskerService.Consumers
 {
     public class BookingStatusChangedConsumer : IConsumer<BookingStatusChangedEvent>
     {
-        private readonly TaskerDbContext _dbContext;
+        private readonly ITaskerAvailabilityService _availabilityService;
         private readonly ILogger<BookingStatusChangedConsumer> _logger;
 
+
         public BookingStatusChangedConsumer(
-            ILogger<BookingStatusChangedConsumer> logger, TaskerDbContext dbContext)
+            ILogger<BookingStatusChangedConsumer> logger, ITaskerAvailabilityService availabilityService)
         {
             _logger = logger;
-            _dbContext = dbContext;
+            _availabilityService = availabilityService;
         }
 
         public async Task Consume(ConsumeContext<BookingStatusChangedEvent> context)
@@ -25,30 +27,8 @@ namespace TaskerService.Consumers
             {
                 _logger.LogInformation("Processing BookingStatusChangedEvent for booking {BookingId}", message.BookingId);
 
-                var booking = await _dbContext.Bookings
-                    .FirstOrDefaultAsync(b => b.BookingId == message.BookingId);
-                
-                if (booking == null)
-                {
-                    _logger.LogWarning("Booking {BookingId} not found", message.BookingId);
-                    return;
-                }
+                await _availabilityService.RemoveUnavailabilitySlotAsync(message.BookingId);
 
-                var bookingStatus = message.NewStatus.ToLower();
-
-
-                switch (bookingStatus)
-                {
-                    case "canceled":
-                        booking.BookingStatus = BookingStatus.Canceled;
-                        break;
-                    default:
-                        _logger.LogWarning("Unknown booking status: {Status}", message.NewStatus);
-                        return;
-                }
-
-                _dbContext.Bookings.Update(booking);
-                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {

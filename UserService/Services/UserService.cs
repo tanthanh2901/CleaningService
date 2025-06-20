@@ -151,23 +151,27 @@ namespace UserService.Services
             return userDto;
         }
 
-        public async Task PromoteToTaskerAsync(int userId, List<int> categoryIds)
+        public async Task<bool> PromoteToTaskerAsync(int userId, List<int> categoryIds)
         {
             var user = await userManager.FindByIdAsync(userId.ToString());
             if (user == null)
             {
                 _logger.LogInformation("User not found.");
-                return;
+                return false;
             }
 
             if (await userManager.IsInRoleAsync(user, "tasker"))
             {
-                return;
+                return true;
             }
-            else 
-                await userManager.AddToRoleAsync(user, "tasker");
+            
+            var result = await userManager.AddToRoleAsync(user, "tasker");
+            if(!result.Succeeded)
+            {
+                return false;
+            }
 
-            if (user.PhoneNumber is null)
+            if (string.IsNullOrEmpty(user.PhoneNumber))
                 user.PhoneNumber = "";
 
             var taskerEvent = new TaskerCreatedEvent
@@ -180,6 +184,8 @@ namespace UserService.Services
             };
 
             await eventBus.PublishAsync(taskerEvent);
+
+            return true;
         }
 
         public async Task<string> UploadAvatarAsync(int userId, IFormFile avatar)
@@ -248,6 +254,20 @@ namespace UserService.Services
             mapper.Map(model, appUser);
             await userRepository.UpdateUserInfo(appUser);
 
+            var isTasker = await userManager.IsInRoleAsync(appUser, "tasker");
+            if (isTasker)
+            {
+                var taskerUpdatedEvent = new TaskerInfoUpdatedEvent
+                {
+                    UserId = userId,
+                    FullName = appUser.FullName,
+                    Address = appUser.Address,
+                    PhoneNumber = appUser.PhoneNumber,
+                    Avatar = appUser.Avatar
+                };
+
+                await eventBus.PublishAsync(taskerUpdatedEvent);
+            }
             return true;
         }
 

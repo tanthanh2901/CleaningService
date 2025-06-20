@@ -1,6 +1,6 @@
 ﻿using OrderService.Dtos;
-using OrderService.Enums;
 using OrderService.Models;
+using Shared.Enums;
 
 namespace OrderService.Interface
 {
@@ -8,7 +8,8 @@ namespace OrderService.Interface
     {
         Task<IEnumerable<BookingDto>> GetAllBookings();
         Task<IEnumerable<BookingDto>> GetBookings(int userId);
-        Task<BookingDto> GetBookingByIdAsync(int orderId);
+        Task<IEnumerable<BookingDto>> GetBookingsByTaskerId(int taskerId);
+        Task<BookingDetailsDto> GetBookingByIdAsync(int orderId);
         Task<bool> UpdateBookingStatusAsync(int orderId, BookingStatus? bookingStatus, PaymentStatus? paymentStatus, DateTime? updatedAt = null);
         Task<IEnumerable<BookingDto>> GetBookingByStatus(int userId, BookingStatus bookingStatus);
         Task<BookingDto> Checkout(CheckoutRequest checkoutRequest);

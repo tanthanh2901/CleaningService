@@ -7,9 +7,9 @@ using OrderService.Entities;
 using OrderService.Models;
 using System.Security.Claims;
 using OrderService.Services;
-using OrderService.Enums;
 using MessageBus.IntegrationEvents;
 using EventBus;
+using Shared.Enums;
 
 namespace OrderService.Repositories
 {
@@ -53,24 +53,23 @@ namespace OrderService.Repositories
             if (service == null)
                 throw new Exception("Service not found from Catalog Service");
 
-            // 2. Validate các option
-            var optionsDict = checkoutRequest.Options.ToDictionary(o => o.OptionKey, o => o.Value);
-            foreach (var requiredOption in service.Options)
+            var durations = await catalogService.GetDurationConfig(checkoutRequest.SelectedDurationConfigId);
+            var premiums = await catalogService.GetPremiumServicesByIdsAsync(checkoutRequest.SelectedPremiumServiceIds);
+
+            decimal basePrice = service.BasePrice;
+            decimal total = basePrice;
+
+            total *= durations.PriceMultiplier;
+
+            foreach (var p in premiums)
             {
-                //if (!optionsDict.ContainsKey(requiredOption.OptionKey))
-                //    throw new Exception($"Missing required option: {requiredOption.OptionKey}");
-
-                //string value = optionsDict[requiredOption.OptionKey];
-                //ValidateOptionDataType(requiredOption.DataType, value);
-
-                if (optionsDict.TryGetValue(requiredOption.OptionKey, out string value))
-                {
-                    ValidateOptionDataType(requiredOption.DataType, value);
-                }
+                total += p.IsPercentage ? (basePrice * p.AdditionalPrice / 100) : p.AdditionalPrice;
             }
 
-            //tinh tien
-            var totalAmount = service.BasePrice * 26000;
+            if(checkoutRequest.PaymentMethod == PaymentMethodType.VNPAY)
+            {
+                total *= 26000;
+            }
 
             var order = new Booking
             {
@@ -82,16 +81,27 @@ namespace OrderService.Repositories
                 ScheduleTime = checkoutRequest.ScheduleTime,
                 Name = service.Name,
                 ImageUrl = service.ImageUrl,
-                BookingStatus = Enums.BookingStatus.Pending,
+                BookingStatus = BookingStatus.Pending,
                 PaymentStatus = PaymentStatus.Pending,
                 PaymentMethod = checkoutRequest.PaymentMethod,
-                TotalAmount = totalAmount,
+                TotalAmount = total,
                 CreateAt = DateTime.Now,
-                Options = checkoutRequest.Options.Select(o => new BookingOption
+                BookingPremiums = premiums.Select(p => new BookingPremium
                 {
-                    OptionKey = o.OptionKey,
-                    Value = o.Value
-                }).ToList()
+                    Name = p.Name,
+                    AdditionalPrice = p.AdditionalPrice,
+                    IsPercentage = p.IsPercentage
+                }).ToList(),
+                BookingDurations = new List<BookingDuration>
+                {
+                    new BookingDuration
+                    {
+                        DurationHours = durations.DurationHours,
+                        MaxRooms = durations.MaxRooms,
+                        MaxAreaSqm = durations.MaxAreaSqm,
+                        PriceMultiplier = durations.PriceMultiplier
+                    }
+                }
             };
 
             await dbContext.AddAsync(order);
@@ -107,6 +117,7 @@ namespace OrderService.Repositories
                     TaskerId = checkoutRequest.TaskerId,
                     ScheduleTime = checkoutRequest.ScheduleTime,
                     Address = checkoutRequest.Address,
+                    PhoneNumber = checkoutRequest.PhoneNumber,
                     ServiceId = order.ServiceId,
                     ServiceName = order.Name,
                     CreatedAt = (DateTime)order.CreateAt
@@ -126,20 +137,33 @@ namespace OrderService.Repositories
             var bookingDtos = mapper.Map<IEnumerable<BookingDto>>(bookings);
 
             // Fetch tasker information for each order
-            foreach (var bookingDto in bookingDtos)
-            {
-                if (bookingDto.TaskerId > 0)
-                {
-                    var tasker = await taskerService.GetTaskerById(bookingDto.TaskerId);
-                    if (tasker != null)
-                    {
-                        bookingDto.Tasker = mapper.Map<TaskerDto>(tasker);
-                    }
-                }
-            }
+            //foreach (var bookingDto in bookingDtos)
+            //{
+            //    if (bookingDto.TaskerId > 0)
+            //    {
+            //        var tasker = await taskerService.GetTaskerById(bookingDto.TaskerId);
+            //        if (tasker != null)
+            //        {
+            //            bookingDto.Tasker = mapper.Map<TaskerDto>(tasker);
+            //        }
+            //    }
+            //}
 
             return bookingDtos;
         }
+
+        public async Task<IEnumerable<BookingDto>> GetBookingsByTaskerId(int taskerId)
+        {
+            var bookings = await dbContext.Bookings
+                    .Where(o => o.TaskerId == taskerId)
+                    .OrderByDescending(b => b.CreateAt)
+                    .ToListAsync();
+
+            var bookingDtos = mapper.Map<IEnumerable<BookingDto>>(bookings);
+
+            return bookingDtos;
+        }
+
 
         public async Task<IEnumerable<BookingDto>> GetAllBookings()
         {
@@ -149,20 +173,31 @@ namespace OrderService.Repositories
             return mapper.Map<IEnumerable<BookingDto>>(orders);
         }
 
-        public async Task<BookingDto> GetBookingByIdAsync(int orderId)
+        public async Task<BookingDetailsDto> GetBookingByIdAsync(int orderId)
         {
-            var order = await dbContext.Bookings.FirstOrDefaultAsync(o => o.BookingId == orderId);
-            return mapper.Map<BookingDto>(order);
+            var booking = await dbContext.Bookings
+                .Include(o => o.BookingDurations)
+                .Include(o => o.BookingPremiums)
+                .FirstOrDefaultAsync(o => o.BookingId == orderId);
+
+            var bookingDtos = mapper.Map<BookingDetailsDto>(booking);
+
+            var tasker = await taskerService.GetTaskerById(bookingDtos.TaskerId);
+            if (tasker != null)
+            {
+                bookingDtos.Tasker = mapper.Map<TaskerDto>(tasker);
+            }
+            return bookingDtos;
         }
 
-        public async Task<IEnumerable<BookingDto>> GetBookingByStatus(int userId, Enums.BookingStatus bookingStatus)
+        public async Task<IEnumerable<BookingDto>> GetBookingByStatus(int userId, BookingStatus bookingStatus)
         {
             var orders = await GetBookings(userId);
             var filteredOrders = orders.Where(o => o.BookingStatus == bookingStatus);
             return mapper.Map<IEnumerable<BookingDto>>(filteredOrders);
         }
 
-        public async Task<bool> UpdateBookingStatusAsync(int orderId, Enums.BookingStatus? bookingStatus, PaymentStatus? paymentStatus, DateTime? updatedAt = null)
+        public async Task<bool> UpdateBookingStatusAsync(int orderId, BookingStatus? bookingStatus, PaymentStatus? paymentStatus, DateTime? updatedAt = null)
         {
             var order = await dbContext.Bookings.FindAsync(orderId);
             if (order == null) return false;
@@ -181,26 +216,6 @@ namespace OrderService.Repositories
 
             await dbContext.SaveChangesAsync();
             return true;
-        }
-
-
-        private void ValidateOptionDataType(string dataType, string value)
-        {
-            try
-            {
-                switch (dataType.ToLower())
-                {
-                    case "int": int.Parse(value); break;
-                    case "decimal": decimal.Parse(value); break;
-                    case "bool": bool.Parse(value); break;
-                    case "number": break; // luôn hợp lệ
-                    default: throw new Exception($"Unsupported data type: {dataType}");
-                }
-            }
-            catch
-            {
-                throw new Exception($"Invalid value '{value}' for type {dataType}");
-            }
         }
 
         public async Task<bool> CancelBooking(int orderId)

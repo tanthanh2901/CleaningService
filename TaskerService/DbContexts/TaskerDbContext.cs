@@ -10,8 +10,8 @@ namespace TaskerService.DbContexts
         }
 
         public DbSet<Tasker> Taskers { get; set; } = default!;
-        public DbSet<Booking> Bookings { get; set; } = default!;
         public DbSet<TaskerCategory> TaskerCategories { get; set; } = default!;
+        public DbSet<TaskerAvailabilitySlot> TaskerAvailabilitySlots { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,18 +25,6 @@ namespace TaskerService.DbContexts
                 .WithMany(t => t.TaskerCategories)
                 .HasForeignKey(tc => tc.TaskerId);
 
-            modelBuilder.Entity<Booking>()
-                .HasOne(b => b.Tasker)
-                .WithMany()
-                .HasForeignKey(b => b.TaskerId);
-
-            //modelBuilder.Entity<Booking>(entity =>
-            //{
-            //    entity.Property(b => b.BookingStatus)
-            //        .HasMaxLength(50) // Optional: set max length
-            //        .IsUnicode()       // Use NVARCHAR
-            //        .IsRequired();     // Optional: make non-nullable
-            //});
         }
     }
 }

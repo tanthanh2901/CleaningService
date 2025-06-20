@@ -4,10 +4,10 @@ namespace CatalogService.Interface
 {
     public interface IServiceService
     {
-        Task<ServiceDto> GetByIdWithtOptionsAsync(int id);
+        Task<IEnumerable<ServiceDto>> GetServicesAsync();
         Task<ServiceDto> GetServiceById(int serviceId);
         Task<ServiceDtoForCreate> AddService(ServiceDtoForCreate service);
-        Task<ServiceDto> UpdateAsync(int id, ServiceDtoForUpdate serviceDto);
+        Task<bool> UpdateAsync(int serviceId, ServiceDtoForUpdate dto);
         Task DeleteService(int serviceId);
 
         Task<IEnumerable<ServiceDto>> GetServicesByCategory(int categoryId);

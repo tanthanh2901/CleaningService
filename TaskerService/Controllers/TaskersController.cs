@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using TaskerService.Services;
 using TaskerService.Entities;
 using Microsoft.AspNetCore.Authorization;
+using TaskerService.Models;
 
 namespace TaskerService.Controllers
 {
@@ -11,10 +12,14 @@ namespace TaskerService.Controllers
     public class TaskersController : ControllerBase
     {
         private readonly ITaskerService taskerService;
+        private readonly IBookingService bookingService;
+        private readonly ITaskerAvailabilityService _availabilityService;
 
-        public TaskersController(ITaskerService taskerService)
+        public TaskersController(ITaskerService taskerService, IBookingService bookingService, ITaskerAvailabilityService availabilityService)
         {
             this.taskerService = taskerService;
+            this.bookingService = bookingService;
+            _availabilityService = availabilityService;
         }
 
         private async Task<int> GetUserId()
@@ -51,6 +56,24 @@ namespace TaskerService.Controllers
             return Ok(result);
         }
 
+        [HttpGet("available-by-category/{categoryId}")]
+        public async Task<IActionResult> GetAvailableTaskersByCategory(
+        int categoryId,
+        [FromQuery] DateTime startTime,
+        [FromQuery] DateTime endTime)
+        {
+            try
+            {
+                var taskers = await _availabilityService.GetAvailableTaskersByCategoryAsync(
+                    categoryId, startTime, endTime);
+                return Ok(taskers);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [Authorize(Roles = "tasker")]
         [HttpPut("set-available")]
         public async Task<IActionResult> SetAvailable()
@@ -67,43 +90,76 @@ namespace TaskerService.Controllers
 
         [Authorize(Roles = "tasker")]
         [HttpGet("bookings")]
-        public async Task<IActionResult> GetTaskerBookings(int taskerId)
+        public async Task<IActionResult> GetTaskerBookings()
         {
-            var bookings = await taskerService.GetTaskerBookings(taskerId);
+            var userId = await GetUserId();
+            if (userId == null)
+            {
+                return NotFound("User not found");
+            }
+
+            var tasker = await taskerService.GetTaskerByUserId(userId);
+            if (tasker == null) return NotFound("Tasker not found.");
+
+            int taskerId = tasker.TaskerId;
+
+            var bookings = await bookingService.GetBookingsByTaskerId(taskerId);
             return Ok(bookings);
         }
 
         [Authorize(Roles = "tasker")]
-        [HttpPost("bookings/{bookingId}/confirm")]
-        public async Task<IActionResult> ConfirmBooking(int bookingId)
+        [HttpGet("bookings/{bookingId}")]
+        public async Task<IActionResult> GetTaskerBooking(int bookingId)
         {
-            var result = await taskerService.ConfirmBooking(bookingId);
-            if (!result)
-                return NotFound("Booking not found");
+            //var bookings = await taskerService.GetTaskerBookings(taskerId);
+            //return Ok(bookings);
 
-            return Ok();
+            var booking = await bookingService.GetBookingByIdAsync(bookingId);
+            return Ok(booking);
         }
 
         [Authorize(Roles = "tasker")]
-        [HttpPost("bookings/{bookingId}/start")]
-        public async Task<IActionResult> StartBooking(int bookingId)
+        [HttpPost("bookings/update-status")]
+        public async Task<IActionResult> UpdateBookingStatus(UpdateBookingStatusModel model)
         {
-            var result = await taskerService.StartBooking(bookingId);
+            var result = await taskerService.UpdateBookingStatus(model);
             if (!result)
                 return NotFound("Booking not found");
 
             return Ok();
         }
 
-        [Authorize(Roles = "tasker")]
-        [HttpPost("bookings/{bookingId}/complete")]
-        public async Task<IActionResult> CompleteBooking(int bookingId)
-        {
-            var result = await taskerService.CompletedBooking(bookingId);
-            if (!result)
-                return NotFound("Booking not found");
+        //[Authorize(Roles = "tasker")]
+        //[HttpPost("bookings/{bookingId}/confirm")]
+        //public async Task<IActionResult> ConfirmBooking(int bookingId)
+        //{
+        //    var result = await taskerService.ConfirmBooking(bookingId);
+        //    if (!result)
+        //        return NotFound("Booking not found");
 
-            return Ok();
-        }
+        //    return Ok();
+        //}
+
+        //[Authorize(Roles = "tasker")]
+        //[HttpPost("bookings/{bookingId}/start")]
+        //public async Task<IActionResult> StartBooking(int bookingId)
+        //{
+        //    var result = await taskerService.StartBooking(bookingId);
+        //    if (!result)
+        //        return NotFound("Booking not found");
+
+        //    return Ok();
+        //}
+
+        //[Authorize(Roles = "tasker")]
+        //[HttpPost("bookings/{bookingId}/complete")]
+        //public async Task<IActionResult> CompleteBooking(int bookingId)
+        //{
+        //    var result = await taskerService.CompletedBooking(bookingId);
+        //    if (!result)
+        //        return NotFound("Booking not found");
+
+        //    return Ok();
+        //}
     }
 }

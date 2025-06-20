@@ -81,49 +81,87 @@ namespace OrderService.Migrations
                     b.ToTable("Bookings");
                 });
 
-            modelBuilder.Entity("OrderService.Entities.BookingOption", b =>
+            modelBuilder.Entity("OrderService.Entities.BookingDuration", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("DurationConfigId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("DurationConfigId"), 1L, 1);
 
                     b.Property<int>("BookingId")
                         .HasColumnType("int");
 
-                    b.Property<string>("OptionKey")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ServiceOptionId")
+                    b.Property<int>("DurationHours")
                         .HasColumnType("int");
 
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("MaxAreaSqm")
+                        .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<int?>("MaxRooms")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("PriceMultiplier")
+                        .HasColumnType("decimal(3,2)");
+
+                    b.HasKey("DurationConfigId");
 
                     b.HasIndex("BookingId");
 
-                    b.ToTable("BookingOptions");
+                    b.ToTable("BookingDurations");
                 });
 
-            modelBuilder.Entity("OrderService.Entities.BookingOption", b =>
+            modelBuilder.Entity("OrderService.Entities.BookingPremium", b =>
                 {
-                    b.HasOne("OrderService.Entities.Booking", "Booking")
-                        .WithMany("Options")
+                    b.Property<int>("PremiumServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("PremiumServiceId"), 1L, 1);
+
+                    b.Property<decimal>("AdditionalPrice")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsPercentage")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("PremiumServiceId");
+
+                    b.HasIndex("BookingId");
+
+                    b.ToTable("BookingPreminums");
+                });
+
+            modelBuilder.Entity("OrderService.Entities.BookingDuration", b =>
+                {
+                    b.HasOne("OrderService.Entities.Booking", null)
+                        .WithMany("BookingDurations")
                         .HasForeignKey("BookingId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
 
-                    b.Navigation("Booking");
+            modelBuilder.Entity("OrderService.Entities.BookingPremium", b =>
+                {
+                    b.HasOne("OrderService.Entities.Booking", null)
+                        .WithMany("BookingPremiums")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("OrderService.Entities.Booking", b =>
                 {
-                    b.Navigation("Options");
+                    b.Navigation("BookingDurations");
+
+                    b.Navigation("BookingPremiums");
                 });
 #pragma warning restore 612, 618
         }

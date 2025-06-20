@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using OrderService.Enums;
+using Shared.Enums;
 
 namespace OrderService.Entities
 {
@@ -26,6 +26,7 @@ namespace OrderService.Entities
         public DateTime ScheduleTime { get; set; }
         public DateTime? CreateAt { get; set; }
         public DateTime? UpdateAt { get; set; }
-        public ICollection<BookingOption> Options { get; set; }
+        public ICollection<BookingDuration> BookingDurations { get; set; } = new List<BookingDuration>();
+        public ICollection<BookingPremium> BookingPremiums { get; set; } = new List<BookingPremium>();
     }
 }

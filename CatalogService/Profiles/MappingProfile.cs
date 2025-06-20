@@ -13,8 +13,14 @@ namespace CatalogService.Profiles
             CreateMap<Service, ServiceDtoForCreate>().ReverseMap();
 
             CreateMap<ServiceOption, ServiceOptionDto>().ReverseMap();
+
+            CreateMap<PremiumService, CreatePremiumServiceDto>().ReverseMap();
+            CreateMap<DurationConfig, CreateDurationConfigDto>().ReverseMap();
+            CreateMap<PremiumService, PremiumServiceDto>().ReverseMap();
+            CreateMap<DurationConfig, DurationConfigDto>().ReverseMap();
             CreateMap<ServiceDtoForCreate, Service>()
-                .ForMember(dest => dest.Options, opt => opt.MapFrom(src => src.Options));
+                .ForMember(dest => dest.PremiumServices, opt => opt.MapFrom(src => src.PremiumServices))
+                .ForMember(dest => dest.DurationConfigs, opt => opt.MapFrom(src => src.DurationConfigs));
 
             CreateMap<Category, CategoryDto>().ReverseMap();
             CreateMap<Category, CategoryForCreateAndUpdate>().ReverseMap();

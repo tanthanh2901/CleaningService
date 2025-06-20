@@ -70,13 +70,13 @@ namespace PaymentService.Consumer
             switch (paymentMethod)
             {
                 case "cod":
-                    await eventBus.PublishAsync(new PaymentCompletedEvent
-                    {
-                        BookingId = orderDto.BookingId,
-                        IsSuccess = true,
-                        PaymentMethod = "cod",
-                        Message = "Payment will be collected after service."
-                    }, cancellationToken);
+                    //await eventBus.PublishAsync(new PaymentCompletedEvent
+                    //{
+                    //    BookingId = orderDto.BookingId,
+                    //    IsSuccess = true,
+                    //    PaymentMethod = "cod",
+                    //    Message = "Payment will be collected after service."
+                    //}, cancellationToken);
                     break;
 
                 case "vnpay":

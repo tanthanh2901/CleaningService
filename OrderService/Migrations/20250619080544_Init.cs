@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace OrderService.Migrations
 {
-    public partial class InitMigration : Migration
+    public partial class Init : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -36,21 +36,44 @@ namespace OrderService.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BookingOptions",
+                name: "BookingDurations",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    DurationConfigId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     BookingId = table.Column<int>(type: "int", nullable: false),
-                    ServiceOptionId = table.Column<int>(type: "int", nullable: false),
-                    OptionKey = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Value = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    DurationHours = table.Column<int>(type: "int", nullable: false),
+                    MaxAreaSqm = table.Column<int>(type: "int", nullable: true),
+                    MaxRooms = table.Column<int>(type: "int", nullable: true),
+                    PriceMultiplier = table.Column<decimal>(type: "decimal(3,2)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BookingOptions", x => x.Id);
+                    table.PrimaryKey("PK_BookingDurations", x => x.DurationConfigId);
                     table.ForeignKey(
-                        name: "FK_BookingOptions_Bookings_BookingId",
+                        name: "FK_BookingDurations_Bookings_BookingId",
+                        column: x => x.BookingId,
+                        principalTable: "Bookings",
+                        principalColumn: "BookingId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BookingPreminums",
+                columns: table => new
+                {
+                    PremiumServiceId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    BookingId = table.Column<int>(type: "int", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AdditionalPrice = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    IsPercentage = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BookingPreminums", x => x.PremiumServiceId);
+                    table.ForeignKey(
+                        name: "FK_BookingPreminums_Bookings_BookingId",
                         column: x => x.BookingId,
                         principalTable: "Bookings",
                         principalColumn: "BookingId",
@@ -58,15 +81,23 @@ namespace OrderService.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BookingOptions_BookingId",
-                table: "BookingOptions",
+                name: "IX_BookingDurations_BookingId",
+                table: "BookingDurations",
+                column: "BookingId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BookingPreminums_BookingId",
+                table: "BookingPreminums",
                 column: "BookingId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "BookingOptions");
+                name: "BookingDurations");
+
+            migrationBuilder.DropTable(
+                name: "BookingPreminums");
 
             migrationBuilder.DropTable(
                 name: "Bookings");

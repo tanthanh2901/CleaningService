@@ -12,37 +12,34 @@ namespace CatalogService.Services
     public class ServiceService : IServiceService
     {
         private readonly IServiceRepository _serviceRepository;
-        private readonly IServiceOptionRepository _serviceOptionRepository;
         private readonly IMapper mapper;
         private readonly CatalogDbContext dbContext;
 
         public ServiceService(
             IServiceRepository serviceRepository,
-            IServiceOptionRepository serviceOptionRepository,
             IMapper mapper,
             CatalogDbContext dbContext)
         {
             _serviceRepository = serviceRepository;
-            _serviceOptionRepository = serviceOptionRepository;
             this.mapper = mapper;
             this.dbContext = dbContext;
         }
 
-
-        public async Task<ServiceDto> GetByIdWithtOptionsAsync(int id)
+        public async Task<IEnumerable<ServiceDto>> GetServicesAsync()
         {
-            var service = await _serviceRepository.GetByIdWithOptionsAsync(id);
-            if (service == null)
-                throw new Exception($"Service with ID {id} not found");
-
-            return mapper.Map<ServiceDto>(service);
+            var services = await dbContext.Services
+                .Include(s => s.Category)
+                .Include(s => s.DurationConfigs)
+                .Include(s => s.PremiumServices)
+                .ToListAsync();
+            return mapper.Map<IEnumerable<ServiceDto>>(services);
         }
 
         public async Task<ServiceDto> GetServiceById(int serviceId)
         {
             var service = await dbContext.Services
-                .Include(s => s.Category)
-                .Include(s => s.Options)
+                .Include(s => s.DurationConfigs)
+                .Include(s => s.PremiumServices)
                 .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
 
             return mapper.Map<ServiceDto>(service);
@@ -51,92 +48,134 @@ namespace CatalogService.Services
         public async Task DeleteService(int serviceId)
         {
             var service = await dbContext.Services
-                        .Include(s => s.Options)
-                        .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
+                .Include(s => s.Category)
+                .Include(s => s.DurationConfigs)
+                .Include(s => s.PremiumServices)
+                .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
 
-            dbContext.ServiceOptions.RemoveRange(service.Options);
+            dbContext.DurationConfigs.RemoveRange(service.DurationConfigs);
+            dbContext.PremiumServices.RemoveRange(service.PremiumServices);
             dbContext.Services.Remove(service);
 
             await dbContext.SaveChangesAsync();
         }
-        public async Task<ServiceDto> UpdateAsync(int id, ServiceDtoForUpdate serviceDto)
+
+        public async Task<bool> UpdateAsync(int serviceId, ServiceDtoForUpdate dto)
         {
             using var transaction = await _serviceRepository.BeginTransactionAsync();
 
             try
             {
-                var existingService = await _serviceRepository.GetByIdAsync(id);
-                if (existingService == null)
-                    throw new Exception($"Service with ID {id} not found");
+                var service = await dbContext.Services
+                    .Include(s => s.DurationConfigs)
+                    .Include(s => s.PremiumServices)
+                    .FirstOrDefaultAsync(s => s.ServiceId == serviceId);
 
-                var serviceToUpdate = mapper.Map<Service>(serviceDto);
-
-                await _serviceRepository.UpdateAsync(serviceToUpdate);
-
-                await UpdateServiceOptionsAsync(id, serviceDto.Options);
-
-                await transaction.CommitAsync();
-
-                return await GetByIdWithtOptionsAsync(id);
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
-
-        private async Task UpdateServiceOptionsAsync(int serviceId, List<ServiceOptionDtoForUpdate> optionDtos)
-        {
-            var existingOptions = await _serviceOptionRepository.GetByServiceIdAsync(serviceId);
-
-            // Handle deleted options
-            var deletedOptionIds = optionDtos
-                .Where(o => o.IsDeleted && o.Id.HasValue)
-                .Select(o => o.Id.Value)
-                .ToList();
-
-            if (deletedOptionIds.Any())
-            {
-                await _serviceOptionRepository.DeleteRangeAsync(deletedOptionIds);
-            }
-
-            var activeOptions = optionDtos.Where(o => !o.IsDeleted).ToList();
-
-            foreach (var optionDto in activeOptions)
-            {
-                if (optionDto.Id.HasValue)
+                if (service == null)
                 {
-                    // Update existing option
-                    var existingOption = existingOptions.FirstOrDefault(o => o.Id == optionDto.Id.Value);
-                    if (existingOption != null)
-                    {
-                        var optionToUpDate = mapper.Map<ServiceOption>(optionDto);
+                    await transaction.RollbackAsync();
+                    return false;
+                }
 
-                        await _serviceOptionRepository.UpdateAsync(optionToUpDate);
+                service.Name = dto.Name;
+                service.Description = dto.Description;
+                service.ImageUrl = dto.ImageUrl;
+                service.TaskDetails = dto.TaskDetails;
+                service.BasePrice = dto.BasePrice;
+                service.PriceUnit = dto.PriceUnit;
+                service.CategoryId = dto.CategoryId;
+
+                var durationIdsInDto = dto.DurationConfigs
+                    .Where(d => d.DurationConfigId > 0)
+                    .Select(d => d.DurationConfigId)
+                    .ToList();
+
+                var toRemoveDuration = service.DurationConfigs
+                    .Where(d => !durationIdsInDto.Contains(d.DurationConfigId))
+                    .ToList();
+
+                dbContext.DurationConfigs.RemoveRange(toRemoveDuration);
+
+                foreach (var durationDto in dto.DurationConfigs)
+                {
+                    if (durationDto.DurationConfigId > 0)
+                    {
+                        // Update existing
+                        var existing = service.DurationConfigs
+                            .FirstOrDefault(d => d.DurationConfigId == durationDto.DurationConfigId);
+
+                        if (existing != null)
+                        {
+                            existing.DurationHours = durationDto.DurationHours;
+                            existing.MaxAreaSqm = durationDto.MaxAreaSqm;
+                            existing.MaxRooms = durationDto.MaxRooms;
+                            existing.PriceMultiplier = durationDto.PriceMultiplier;
+                        }
+                    }
+                    else
+                    {
+                        service.DurationConfigs.Add(new DurationConfig
+                        {
+                            DurationHours = durationDto.DurationHours,
+                            MaxAreaSqm = durationDto.MaxAreaSqm,
+                            MaxRooms = durationDto.MaxRooms,
+                            PriceMultiplier = durationDto.PriceMultiplier,
+                            ServiceId = service.ServiceId
+                        });
                     }
                 }
-                else
-                {
-                    var newOption = new ServiceOption
-                    {
-                        ServiceId = serviceId,
-                        OptionKey = optionDto.OptionKey,
-                        OptionLabel = optionDto.OptionLabel,
-                        DataType = optionDto.DataType,
-                        DefaultValue = optionDto.DefaultValue,
-                    };
 
-                    await _serviceOptionRepository.CreateAsync(newOption);
+                var premiumIdsInDto = dto.PremiumServices
+                    .Where(p => p.PremiumServiceId > 0)
+                    .Select(p => p.PremiumServiceId)
+                    .ToList();
+
+                var toRemovePremium = service.PremiumServices
+                    .Where(p => !premiumIdsInDto.Contains(p.PremiumServiceId))
+                    .ToList();
+
+                dbContext.PremiumServices.RemoveRange(toRemovePremium);
+
+                foreach (var premiumDto in dto.PremiumServices)
+                {
+                    if (premiumDto.PremiumServiceId > 0)
+                    {
+                        var existing = service.PremiumServices
+                            .FirstOrDefault(p => p.PremiumServiceId == premiumDto.PremiumServiceId);
+
+                        if (existing != null)
+                        {
+                            existing.Name = premiumDto.Name;
+                            existing.AdditionalPrice = premiumDto.AdditionalPrice;
+                            existing.IsPercentage = premiumDto.IsPercentage;
+                        }
+                    }
+                    else
+                    {
+                        service.PremiumServices.Add(new PremiumService
+                        {
+                            Name = premiumDto.Name,
+                            AdditionalPrice = premiumDto.AdditionalPrice,
+                            IsPercentage = premiumDto.IsPercentage,
+                            ServiceId = service.ServiceId
+                        });
+                    }
                 }
+
+                await dbContext.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                throw; // Re-throw to let the controller handle it
             }
         }
-
         public async Task<IEnumerable<ServiceDto>> GetServicesByCategory(int categoryId)
         {
             var services = await dbContext.Services
                 .Include(x => x.Category)
-                .Include(s => s.Options)
                 .Where(x => (x.CategoryId == categoryId))
                 .ToListAsync();
 
@@ -146,8 +185,9 @@ namespace CatalogService.Services
         public async Task<PaginationDto<ServiceDto>> GetPaginatedServices(int pageNumber, int pageSize)
         {
             var query = dbContext.Services
-                .Include(s => s.Category)
-                .Include(s => s.Options)
+                .Include(s => s.DurationConfigs)
+                .Include(s => s.PremiumServices)
+                .OrderBy(s => s.ServiceId)
                 .AsQueryable();
 
             var result = await query.ToPaginatedListAsync(pageNumber, pageSize);
@@ -173,9 +213,32 @@ namespace CatalogService.Services
 
         public async Task<ServiceDtoForCreate> AddService(ServiceDtoForCreate service)
         {
-            var serviceToAdd = mapper.Map<Service>(service);
+            var serviceToAdd = new Service
+            {
+                Name = service.Name,
+                ImageUrl = service.ImageUrl,
+                Description = service.Description,
+                TaskDetails = service.TaskDetails,
+                BasePrice = service.BasePrice,
+                PriceUnit = service.PriceUnit,
+                CategoryId = service.CategoryId,
+                DurationConfigs = service.DurationConfigs.Select(d => new DurationConfig
+                {
+                    DurationHours = d.DurationHours,
+                    MaxAreaSqm = d.MaxAreaSqm,
+                    MaxRooms = d.MaxRooms,
+                    PriceMultiplier = d.PriceMultiplier
+                }).ToList(),
+                PremiumServices = service.PremiumServices.Select(p => new PremiumService
+                {
+                    Name = p.Name,
+                    AdditionalPrice = p.AdditionalPrice,
+                    IsPercentage = p.IsPercentage
+                }).ToList()
+            };
 
-            await _serviceRepository.AddService(serviceToAdd);
+            await dbContext.Services.AddAsync(serviceToAdd);
+            await dbContext.SaveChangesAsync();
 
             return service;
         }

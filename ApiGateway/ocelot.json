@@ -349,6 +349,22 @@
             }
         },
         {
+            "DownstreamPathTemplate": "/api/taskers/available-by-category/{categoryId}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/available-by-category/{categoryId}",
+            "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
             "DownstreamPathTemplate": "/api/taskers/bookings",
             "DownstreamScheme": "https",
             "DownstreamHostAndPorts": [
@@ -358,6 +374,22 @@
                 }
             ],
             "UpstreamPathTemplate": "/taskers/bookings",
+            "UpstreamHttpMethod": [ "GET" ],
+            "AuthenticationOptions": {
+                "AuthenticationProviderKey": "Bearer",
+                "AllowedScopes": []
+            }
+        },
+        {
+            "DownstreamPathTemplate": "/api/taskers/bookings/{bookingId}",
+            "DownstreamScheme": "https",
+            "DownstreamHostAndPorts": [
+                {
+                    "Host": "localhost",
+                    "Port": 5008
+                }
+            ],
+            "UpstreamPathTemplate": "/taskers/bookings/{bookingId}",
             "UpstreamHttpMethod": [ "GET" ],
             "AuthenticationOptions": {
                 "AuthenticationProviderKey": "Bearer",

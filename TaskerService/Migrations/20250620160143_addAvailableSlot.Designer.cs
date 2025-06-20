@@ -12,8 +12,8 @@ using TaskerService.DbContexts;
 namespace TaskerService.Migrations
 {
     [DbContext(typeof(TaskerDbContext))]
-    [Migration("20250610081218_Init")]
-    partial class Init
+    [Migration("20250620160143_addAvailableSlot")]
+    partial class addAvailableSlot
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -24,47 +24,6 @@ namespace TaskerService.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
-            modelBuilder.Entity("TaskerService.Entities.Booking", b =>
-                {
-                    b.Property<int>("BookingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("BookingStatus")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("CompletedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ScheduleTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ServiceName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("TaskerId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("BookingId");
-
-                    b.HasIndex("TaskerId");
-
-                    b.ToTable("Bookings");
-                });
-
             modelBuilder.Entity("TaskerService.Entities.Tasker", b =>
                 {
                     b.Property<int>("TaskerId")
@@ -72,6 +31,10 @@ namespace TaskerService.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TaskerId"), 1L, 1);
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Avatar")
                         .IsRequired()
@@ -82,10 +45,6 @@ namespace TaskerService.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -116,6 +75,46 @@ namespace TaskerService.Migrations
                     b.ToTable("Taskers");
                 });
 
+            modelBuilder.Entity("TaskerService.Entities.TaskerAvailabilitySlot", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SlotType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("TaskerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TaskerId");
+
+                    b.ToTable("TaskerAvailabilitySlots");
+                });
+
             modelBuilder.Entity("TaskerService.Entities.TaskerCategory", b =>
                 {
                     b.Property<int>("TaskerId")
@@ -129,15 +128,13 @@ namespace TaskerService.Migrations
                     b.ToTable("TaskerCategories");
                 });
 
-            modelBuilder.Entity("TaskerService.Entities.Booking", b =>
+            modelBuilder.Entity("TaskerService.Entities.TaskerAvailabilitySlot", b =>
                 {
-                    b.HasOne("TaskerService.Entities.Tasker", "Tasker")
-                        .WithMany()
+                    b.HasOne("TaskerService.Entities.Tasker", null)
+                        .WithMany("AvailabilitySlots")
                         .HasForeignKey("TaskerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Tasker");
                 });
 
             modelBuilder.Entity("TaskerService.Entities.TaskerCategory", b =>
@@ -153,6 +150,8 @@ namespace TaskerService.Migrations
 
             modelBuilder.Entity("TaskerService.Entities.Tasker", b =>
                 {
+                    b.Navigation("AvailabilitySlots");
+
                     b.Navigation("TaskerCategories");
                 });
 #pragma warning restore 612, 618

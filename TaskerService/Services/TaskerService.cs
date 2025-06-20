@@ -7,6 +7,9 @@ using TaskerService.Repositories;
 using EventBus;
 using MessageBus.IntegrationEvents;
 using Microsoft.IdentityModel.Tokens;
+using TaskerService.Models;
+using MassTransit;
+using MessageBus;
 
 namespace TaskerService.Services
 {
@@ -15,9 +18,11 @@ namespace TaskerService.Services
         private readonly TaskerDbContext dbContext;
         private readonly ITaskerRepository taskerRepository;
         private readonly ICatalogService catalogService;
+        private readonly IBookingService bookingService;
         private readonly IMapper mapper;
         private readonly ILogger<TaskerService> _logger;
         private readonly IEventBus eventBus;
+        private readonly ITaskerAvailabilityService _availabilityService;
 
         public TaskerService(
             TaskerDbContext dbContext,
@@ -25,7 +30,9 @@ namespace TaskerService.Services
             ITaskerRepository taskerRepository,
             ICatalogService catalogService,
             ILogger<TaskerService> logger,
-            IEventBus eventBus)
+            IEventBus eventBus,
+            IBookingService bookingService,
+            ITaskerAvailabilityService availabilityService)
         {
             this.dbContext = dbContext;
             this.mapper = mapper;
@@ -33,6 +40,8 @@ namespace TaskerService.Services
             this.catalogService = catalogService;
             this._logger = logger;
             this.eventBus = eventBus;
+            this.bookingService = bookingService;
+            _availabilityService = availabilityService;
         }
 
         public async Task CreateAsync(Tasker tasker)
@@ -64,150 +73,125 @@ namespace TaskerService.Services
             }
         }
 
-        public async Task<bool> ConfirmBooking(int bookingId)
-        {
-            try
-            {
-                var booking = await dbContext.Bookings
-                    .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+        //public async Task<bool> ConfirmBooking(int bookingId)
+        //{
+        //    try
+        //    {
+                
+        //        var tasker = await dbContext.Taskers
+        //            .FirstOrDefaultAsync(t => t.TaskerId == booking.TaskerId);
 
-                if (booking == null)
-                {
-                    _logger.LogError("Booking {BookingId} not found", bookingId);
-                    return false;
-                }
+        //        if (tasker == null)
+        //        {
+        //            _logger.LogError("Tasker {TaskerId} not found", booking.TaskerId);
+        //            return false;
+        //        }
 
-                var tasker = await dbContext.Taskers
-                    .FirstOrDefaultAsync(t => t.TaskerId == booking.TaskerId);
+        //        tasker.IsAvailable = false;
 
-                if (tasker == null)
-                {
-                    _logger.LogError("Tasker {TaskerId} not found", booking.TaskerId);
-                    return false;
-                }
+        //        dbContext.Taskers.Update(tasker);
 
-                tasker.IsAvailable = false;
+        //        await dbContext.SaveChangesAsync();
 
-                booking.BookingStatus = BookingStatus.Confirmed;
-                booking.UpdatedAt = DateTime.Now;
+        //        // Publish event to update booking status
+        //        await eventBus.PublishAsync(new BookingStatusChangedEvent
+        //        {
+        //            BookingId = booking.BookingId,
+        //            NewStatus = booking.BookingStatus.ToString(),
+        //            ChangedAt = booking.UpdatedAt
+        //        });
 
-                dbContext.Bookings.Update(booking);
-                dbContext.Taskers.Update(tasker);
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error confirming booking {BookingId}", bookingId);
+        //        return false;
+        //    }
+        //}
 
-                await dbContext.SaveChangesAsync();
+        //public async Task<bool> CompletedBooking(int bookingId)
+        //{
+        //    try
+        //    {
+        //        var booking = await dbContext.Bookings
+        //            .Include(b => b.Tasker)
+        //            .FirstOrDefaultAsync(b => b.BookingId == bookingId);
 
-                // Publish event to update booking status
-                await eventBus.PublishAsync(new BookingStatusChangedEvent
-                {
-                    BookingId = booking.BookingId,
-                    NewStatus = booking.BookingStatus.ToString(),
-                    ChangedAt = booking.UpdatedAt
-                });
+        //        if (booking == null)
+        //        {
+        //            _logger.LogError("Booking {BookingId} not found", bookingId);
+        //            return false;
+        //        }
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error confirming booking {BookingId}", bookingId);
-                return false;
-            }
-        }
+        //        // Update booking status
+        //        booking.BookingStatus = BookingStatus.Completed;
+        //        booking.CompletedAt = DateTime.Now;
 
-        public async Task<bool> CompletedBooking(int bookingId)
-        {
-            try
-            {
-                var booking = await dbContext.Bookings
-                    .Include(b => b.Tasker)
-                    .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+        //        // Update tasker stats
+        //        var tasker = booking.Tasker;
+        //        tasker.CompletedTasks++;
+        //        tasker.IsAvailable = true;  // Make tasker available again
 
-                if (booking == null)
-                {
-                    _logger.LogError("Booking {BookingId} not found", bookingId);
-                    return false;
-                }
+        //        dbContext.Bookings.Update(booking);
+        //        dbContext.Taskers.Update(tasker);
 
-                // Update booking status
-                booking.BookingStatus = BookingStatus.Completed;
-                booking.CompletedAt = DateTime.Now;
+        //        await dbContext.SaveChangesAsync();
 
-                // Update tasker stats
-                var tasker = booking.Tasker;
-                tasker.CompletedTasks++;
-                tasker.IsAvailable = true;  // Make tasker available again
+        //        // Publish event to update booking status
+        //        await eventBus.PublishAsync(new BookingStatusChangedEvent
+        //        {
+        //            BookingId = booking.BookingId,
+        //            NewStatus = booking.BookingStatus.ToString(),
+        //            ChangedAt = DateTime.Now
+        //        });
 
-                dbContext.Bookings.Update(booking);
-                dbContext.Taskers.Update(tasker);
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error completing booking {BookingId}", bookingId);
+        //        return false;
+        //    }
+        //}
 
-                await dbContext.SaveChangesAsync();
+        //public async Task<bool> StartBooking(int bookingId)
+        //{
+        //    try
+        //    {
+        //        var booking = await dbContext.Bookings
+        //            .Include(b => b.Tasker)
+        //            .FirstOrDefaultAsync(b => b.BookingId == bookingId);
 
-                // Publish event to update booking status
-                await eventBus.PublishAsync(new BookingStatusChangedEvent
-                {
-                    BookingId = booking.BookingId,
-                    NewStatus = booking.BookingStatus.ToString(),
-                    ChangedAt = DateTime.Now
-                });
+        //        if (booking == null)
+        //        {
+        //            _logger.LogError("Booking {BookingId} not found", bookingId);
+        //            return false;
+        //        }
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error completing booking {BookingId}", bookingId);
-                return false;
-            }
-        }
+        //        // Update booking status
+        //        booking.BookingStatus = BookingStatus.InProgress;
+        //        booking.UpdatedAt = DateTime.Now;
 
-        public async Task<bool> StartBooking(int bookingId)
-        {
-            try
-            {
-                var booking = await dbContext.Bookings
-                    .Include(b => b.Tasker)
-                    .FirstOrDefaultAsync(b => b.BookingId == bookingId);
+        //        dbContext.Bookings.Update(booking);
+        //        await dbContext.SaveChangesAsync();
 
-                if (booking == null)
-                {
-                    _logger.LogError("Booking {BookingId} not found", bookingId);
-                    return false;
-                }
+        //        // Publish event to update booking status
+        //        await eventBus.PublishAsync(new BookingStatusChangedEvent
+        //        {
+        //            BookingId = booking.BookingId,
+        //            NewStatus = booking.BookingStatus.ToString(),
+        //            ChangedAt = booking.UpdatedAt
+        //        });
 
-                // Update booking status
-                booking.BookingStatus = BookingStatus.InProgress;
-                booking.UpdatedAt = DateTime.Now;
-
-                dbContext.Bookings.Update(booking);
-                await dbContext.SaveChangesAsync();
-
-                // Publish event to update booking status
-                await eventBus.PublishAsync(new BookingStatusChangedEvent
-                {
-                    BookingId = booking.BookingId,
-                    NewStatus = booking.BookingStatus.ToString(),
-                    ChangedAt = booking.UpdatedAt
-                });
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error completing booking {BookingId}", bookingId);
-                return false;
-            }
-        }
-
-
-        public async Task<List<Booking>> GetTaskerBookings(int taskerId)
-        {
-            var query = dbContext.Bookings
-                .Where(b => b.TaskerId == taskerId);
-
-            return await query
-                .OrderByDescending(b => b.ScheduleTime)
-                .ToListAsync();
-        }
-
-
+        //        return true;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _logger.LogError(ex, "Error completing booking {BookingId}", bookingId);
+        //        return false;
+        //    }
+        //}
 
         public async Task<List<TaskerWithCategoriesDto>> GetAvailableTaskersByCategory(int categoryId)
         {
@@ -248,6 +232,91 @@ namespace TaskerService.Services
         public async Task<Tasker> GetTaskerByUserId(int UserId)
         {
             return await taskerRepository.GetTaskerByUserId(UserId);
+        }
+
+        public async Task<bool> UpdateBookingStatus(UpdateBookingStatusModel model)
+        {
+            var booking = await bookingService.GetBookingByIdAsync(model.BookingId);
+            if (booking == null)
+            {
+                _logger.LogError("Booking {BookingId} not found", model.BookingId);
+                return false;
+            }
+            var endTime = booking.BookingDuration.DurationHours;
+            try
+            {
+                var tasker = await dbContext.Taskers
+                    .FirstOrDefaultAsync(t => t.TaskerId == booking.TaskerId);
+
+                if (tasker == null)
+                {
+                    _logger.LogError("Tasker {TaskerId} not found", booking.TaskerId);
+                    return false;
+                }
+
+                var currentStatus = booking.BookingStatus;
+                var newStatus = model.BookingStatus;
+
+                switch (newStatus)
+                {
+                    case Shared.Enums.BookingStatus.Confirmed:
+                        if (currentStatus == Shared.Enums.BookingStatus.Assigned)
+                        {
+                            // Create unavailability slot for the specific time period
+                            await _availabilityService.CreateUnavailabilitySlotAsync(
+                                booking.TaskerId,
+                                booking.ScheduleTime,
+                                booking.ScheduleTime.AddHours(booking.BookingDuration.DurationHours),
+                                booking.BookingId,
+                                "confirmed_booking");
+                        }
+                        break;
+
+                    case Shared.Enums.BookingStatus.Completed:
+                        if (currentStatus == Shared.Enums.BookingStatus.InProgress)
+                        {
+                            // Remove the unavailability slot - tasker is now available again
+                            await _availabilityService.RemoveUnavailabilitySlotAsync(booking.BookingId);
+
+                            // Update tasker stats
+                            tasker.CompletedTasks++;
+                            dbContext.Taskers.Update(tasker);
+                        }
+                        break;
+
+                    case Shared.Enums.BookingStatus.Canceled:
+                        // Remove unavailability slot if booking is cancelled
+                        await _availabilityService.RemoveUnavailabilitySlotAsync(booking.BookingId);
+                        break;
+
+                    case Shared.Enums.BookingStatus.InProgress:
+                        // No availability change needed
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Invalid booking status transition from {currentStatus} to {newStatus}");
+                }
+
+                await dbContext.SaveChangesAsync();
+
+                // Publish booking status change event
+                await eventBus.PublishAsync(new BookingStatusChangedEvent
+                {
+                    BookingId = booking.BookingId,
+                    NewStatus = newStatus.ToString(),
+                    ChangedAt = DateTime.UtcNow
+                });
+
+                _logger.LogInformation("Updated booking {BookingId} status from {OldStatus} to {NewStatus}",
+                    model.BookingId, currentStatus, newStatus);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating booking status for {BookingId}", model.BookingId);
+                return false;
+            }
         }
     }
 }

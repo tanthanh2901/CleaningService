@@ -14,10 +14,9 @@ namespace CatalogService.Repositories
             this.dbContext = dbContext;
         }
 
-        public async Task<List<ServiceOption>> GetByServiceIdAsync(int serviceId)
+        public async Task<List<ServiceOption>> GetByServiceOptionsAsync()
         {
             return await dbContext.ServiceOptions
-                .Where(o => o.ServiceId == serviceId)
                 .ToListAsync();
         }
 
@@ -36,7 +35,7 @@ namespace CatalogService.Repositories
         public async Task DeleteRangeAsync(List<int> ids)
         {
             var optionsToDelete = await dbContext.ServiceOptions
-                .Where(o => ids.Contains(o.Id))
+                .Where(o => ids.Contains(o.ServiceOptionId))
             .ToListAsync();
 
             dbContext.ServiceOptions.RemoveRange(optionsToDelete);

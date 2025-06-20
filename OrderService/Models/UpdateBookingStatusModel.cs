@@ -1,4 +1,4 @@
-﻿using OrderService.Enums;
+﻿using Shared.Enums;
 
 namespace OrderService.Models
 {
